@@ -1,0 +1,46 @@
+PokeDex AI platform
+
+Core features
+
+1. Authentication
+- Sign up
+- Login
+- JWT auth
+- OAuth Google
+- Auth middleware
+
+2. Pokemon search
+- Search by name
+- Search by type
+- Search by generation
+- Pagination
+- Infinite scroll
+
+3. Detail pokemon page
+- Stats
+- Abilities
+- Types
+- Moves
+- Evolution chain
+- Weakness/resistance
+
+4. Favorite system 
+- Save Pokémon
+- Remove favorites
+
+5. Team Builder
+- User create team and edit: max 6 Pokémon
+- Save Team
+
+6. Admin Dashboard
+- Manage:
+    + Users
+    + Reports
+
+Future implementation:
+1. AI analyzer
+- Team strengths
+- Weaknesses
+- Suggested replacements
+
+2. Sharing
