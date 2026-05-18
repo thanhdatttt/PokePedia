@@ -1,0 +1,103 @@
+Database Design
+
+I. Overall doamains:
+
+User
+Pokémon Data
+Favorites
+Team Builder
+AI Analyzer
+Admin
+Infrastructure/Audit
+Social/Sharing (future)
+
+1. User
+Tables:
+
+users
+-----
+
+refresh_tokens
+--------------
+
+2. Pokémon Data
+
+pokemon
+-------
+
+pokemon_types
+-------------
+
+pokemon_abilities
+--------------
+
+pokemon_moves
+-------------
+
+pokemon_stats
+-------------
+
+evolution_chain
+-----------------
+
+evolution_chain_node
+----------------------------
+
+generations
+-----------
+
+types
+-----
+
+abilities
+---------
+
+moves
+-----
+
+stats
+-----
+
+type_effectiveness
+------------------
+
+3. Favorites
+
+favorites
+---------
+
+4. Team Builder
+
+teams
+-----
+
+team_members
+------------
+
+5. AI Analyzer
+
+ai_team_analyzers
+----------------
+
+6. Admin
+
+reports
+-------
+
+7. Infrastructure/Audit (future)
+
+8. Social/Sharing (future)
+
+II. RabbitMQ Design
+
+pokemon.sync
+
+team.analysis
+
+III. Redis Design
+
+cache detail
+EX: pokemon:detail:pikachu
+
+cache search
+EX: pokemon:search:type:fire:page:1

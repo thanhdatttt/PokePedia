@@ -6,7 +6,7 @@ Core features
 - Sign up
 - Login
 - JWT auth
-- OAuth Google
+- OAuth Google (optional)
 - Auth middleware
 
 2. Pokemon search
@@ -43,4 +43,7 @@ Future implementation:
 - Weaknesses
 - Suggested replacements
 
-2. Sharing
+2. Sharing and Social
+- Share team
+- Clone team
+- Rating system
