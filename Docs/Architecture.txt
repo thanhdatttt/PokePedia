@@ -1,3 +1,5 @@
+PROJECT ARCHITECTURE
+
                 ┌─────────────────┐
                 │     Client      │
                 │ Next.js Frontend│
@@ -40,3 +42,74 @@
         │ External APIs    │
         │ PokéAPI GeminiAI │
         └──────────────────┘
+
+
+PROJECT STRUCTURE
+
+1. Backend:
+
+backend/
+│
+├── prisma/
+│   ├── schema.prisma
+│   ├── migrations/
+│   └── seed/
+│
+├── src/
+│   │
+│   ├── main.ts
+│   ├── app.module.ts
+│   │
+│   ├── common/
+│   │   ├── decorators/
+│   │   ├── guards/
+│   │   ├── interceptors/
+│   │   ├── filters/
+│   │   ├── pipes/
+│   │   ├── constants/
+│   │   └── utils/
+│   │
+│   ├── config/
+│   │   ├── configuration.ts
+│   │   ├── env.validation.ts
+│   │   └── database.config.ts
+│   │
+│   ├── database/
+│   │   ├── prisma.service.ts
+│   │   └── prisma.module.ts
+│   │
+│   ├── auth/
+│   │   ├── dto/
+│   │   ├── guards/
+│   │   ├── strategies/
+│   │   ├── auth.controller.ts
+│   │   ├── auth.service.ts
+│   │   ├── auth.module.ts
+│   │   └── jwt.service.ts
+│   │
+│   ├── users/
+│   │
+│   ├── pokemon/
+│   │
+│   ├── teams/
+│   │
+│   ├── favorites/
+│   │
+│   ├── ai/
+│   │
+│   ├── reports/
+│   │
+│   ├── redis/
+│   │
+│   ├── queue/
+│   │
+│   └── integrations/
+│       └── pokeapi/
+│
+├── test/
+│
+├── .env
+├── docker-compose.yml
+├── package.json
+├── tsconfig.json
+└── nest-cli.json
