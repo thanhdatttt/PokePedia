@@ -5,7 +5,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -16,6 +16,11 @@ datasource db {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum OtpType {
+  REGISTER
+  RESET
 }
 
 // models (table)
@@ -45,9 +50,23 @@ model RefreshToken {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt   DateTime
-  revoked     Boolean  @default(false)
-
   createdAt   DateTime @default(now())
 
+  @@index([userId])
   @@map("refresh_tokens")
+}
+
+model OTP {
+  id          String   @id @default(uuid())
+
+  email       String
+  otp_hash    String
+  verified    Boolean  @default(false)
+  otpType     OtpType  @default(REGISTER)
+
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@map("otps")
 }
