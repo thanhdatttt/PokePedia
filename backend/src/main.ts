@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { PrismaService } from './database/prisma.service';
+import config from './config/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,11 +15,7 @@ async function bootstrap() {
     }),
   );
 
-  // Shutdown hooks
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
-
   app.setGlobalPrefix('api');
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(config().PORT ?? 3000);
 }
 bootstrap();
