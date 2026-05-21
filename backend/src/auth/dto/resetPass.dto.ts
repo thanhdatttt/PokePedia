@@ -1,5 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString, IsStrongPassword } from "class-validator";
-import { strongPasswordOptions } from "../constants/auth.constant";
+import { strongPasswordOptions } from "../../common/constants/auth.constant";
 
 export class ResetPassDto {
   @IsNotEmpty()
