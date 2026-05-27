@@ -1,16 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
 
-/**
- * MailService — sends OTP emails via SMTP (nodemailer).
- *
- * Dev fallback: if MAIL_HOST is not configured, OTP is logged to console
- * so you can develop without a mail server.
- *
- * To enable real email:
- *   npm install nodemailer @types/nodemailer
- *   Set MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS, MAIL_FROM in .env
- */
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
@@ -35,28 +26,27 @@ export class MailService {
       return;
     }
 
-    // ─── PRODUCTION: send via nodemailer ─────────────────────────────────
-    // Uncomment after: npm install nodemailer @types/nodemailer
-    //
-    // import * as nodemailer from 'nodemailer';
-    //
-    // const transporter = nodemailer.createTransport({
-    //   host: mailHost,
-    //   port: this.configService.get<number>('MAIL_PORT'),
-    //   secure: false,
-    //   auth: {
-    //     user: this.configService.get<string>('MAIL_USER'),
-    //     pass: this.configService.get<string>('MAIL_PASS'),
-    //   },
-    // });
-    //
-    // await transporter.sendMail({
-    //   from: this.configService.get<string>('MAIL_FROM'),
-    //   to,
-    //   subject,
-    //   text,
-    // });
+    // production mode
+    const transporter = nodemailer.createTransport({
+      host: mailHost,
+      port: this.configService.get<number>('MAIL_PORT'),
+      secure: false,
+      auth: {
+        user: this.configService.get<string>('MAIL_USER'),
+        pass: this.configService.get<string>('MAIL_PASS'),
+      },
+    });
+    
+    await transporter.sendMail({
+      from: {
+        name: 'PokePedia',
+        address: this.configService.get<string>('MAIL_FROM') || 'noreply@pokepoedia.com',
+      },
+      to,
+      subject,
+      text,
+    });
 
-    this.logger.log(`✉️  Email sent to ${to}: ${subject}`);
+    this.logger.log(`Email sent to ${to}: ${subject}`);
   }
 }
