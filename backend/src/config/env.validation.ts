@@ -7,8 +7,16 @@ export const envValidationSchema = Joi.object({
   // JWT
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_REFRESH_SECRET: Joi.string().required(),
-  ACCESS_TOKEN_EXPIRES: Joi.string().required(),
-  REFRESH_TOKEN_EXPIRES: Joi.string().required(),
-  OTP_EXPIRES: Joi.string().required(),
-  BCRYPT_ROUND: Joi.string().required(),
+ 
+  // Redis
+  REDIS_HOST: Joi.string().default('localhost'),
+  REDIS_PORT: Joi.number().default(6379),
+  REDIS_PASSWORD: Joi.string().optional().allow(''),
+ 
+  // Email
+  MAIL_HOST: Joi.string().optional(),
+  MAIL_PORT: Joi.number().default(587),
+  MAIL_USER: Joi.string().optional(),
+  MAIL_PASS: Joi.string().optional(),
+  MAIL_FROM: Joi.string().optional(),
 });

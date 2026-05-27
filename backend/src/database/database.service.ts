@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import config from 'src/config/config';
 
 @Injectable()
 export class DatabaseService {
-  private pool = new Pool({
-    connectionString: config().DATABASE_URL,
-  });
+  private pool: Pool;
+  db: ReturnType<typeof drizzle>;
 
-  db = drizzle(this.pool);
+  constructor(private readonly configService: ConfigService) {
+    this.pool = new Pool({
+      connectionString: this.configService.get<string>('DATABASE_URL'),
+    });
+    this.db = drizzle(this.pool);
+  }
 }

@@ -50,8 +50,7 @@ PROJECT STRUCTURE
 
 backend/
 │
-├── prisma/
-│   ├── schema.prisma
+├── drizzle/
 │   ├── migrations/
 │   └── seed/
 │
@@ -75,8 +74,9 @@ backend/
 │   │   └── database.config.ts
 │   │
 │   ├── database/
-│   │   ├── prisma.service.ts
-│   │   └── prisma.module.ts
+│   │   ├── schema/
+│   │   ├── database.service.ts
+│   │   └── database.module.ts
 │   │
 │   ├── auth/
 │   │   ├── dto/

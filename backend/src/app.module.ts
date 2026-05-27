@@ -3,18 +3,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { RedisModule } from './redis/redis.module';
+import { DatabaseModule } from './database/database.module';
 import { envValidationSchema } from './config/env.validation';
-import config from './config/config';
 
 @Module({
   imports: [ 
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [config],
       validationSchema: envValidationSchema
     }), 
     
-    AuthModule,
+    DatabaseModule, AuthModule, RedisModule
   ],
   controllers: [AppController],
   providers: [AppService],
