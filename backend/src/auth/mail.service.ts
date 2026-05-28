@@ -71,16 +71,16 @@ export class MailService {
       <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 40px 20px;">
         <div style="max-width: 600px; margin: auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           
-          <div style="background: #ef5350; padding: 24px; text-align: center;">
+          <div style="background: #da2b29; padding: 24px; text-align: center;">
             <h1 style="color: white; margin: 0;">POKEPEDIA CENTER</h1>
           </div>
 
           <div style="padding: 32px;">
-            <h2 style="margin-top: 0; color: #333;">
+            <h2 style="margin-top: 0; color: #333; text-align: center;">
               ${title}
             </h2>
 
-            <p style="color: #555; font-size: 16px; line-height: 1.6;">
+            <p style="color: #555; font-size: 16px; line-height: 1.6; text-align: center;">
               ${description}
             </p>
 
@@ -94,18 +94,18 @@ export class MailService {
                   font-size: 32px;
                   font-weight: bold;
                   letter-spacing: 8px;
-                  color: #ef5350;
+                  color: #da2b29;
                 "
               >
                 ${otp}
               </div>
             </div>
 
-            <p style="color: #777; font-size: 14px;">
+            <p style="color: #777; font-size: 14px; text-align: center;">
               This OTP will expire in <strong>5 minutes</strong>.
             </p>
 
-            <p style="color: #777; font-size: 14px;">
+            <p style="color: #777; font-size: 14px; text-align: center;">
               If you did not request this email, you can safely ignore it.
             </p>
           </div>
