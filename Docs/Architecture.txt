@@ -113,3 +113,65 @@ backend/
 ├── package.json
 ├── tsconfig.json
 └── nest-cli.json
+
+
+2. frontend
+
+frontend/
+├── public/
+│
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   └── register/
+│   │   │
+│   │   ├── pokemon/
+│   │   │   ├── [id]/
+│   │   │   └── page.tsx
+│   │   │
+│   │   ├── teams/
+│   │   ├── favorites/
+│   │   ├── profile/
+│   │   ├── admin/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   │
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── common/
+│   │   ├── pokemon/
+│   │   ├── team/
+│   │   ├── auth/
+│   │   └── layout/
+│   │
+│   ├── lib/
+│   │   ├── axios.ts
+│   │   ├── query-client.ts
+│   │   ├── utils.ts
+│   │   └── auth.ts
+│   │
+│   ├── hooks/
+│   │
+│   ├── services/
+│   │   ├── auth.service.ts
+│   │   ├── pokemon.service.ts
+│   │   ├── team.service.ts
+│   │   └── user.service.ts
+│   │
+│   ├── store/
+│   │   ├── auth.store.ts
+│   │   └── theme.store.ts
+│   │
+│   ├── types/
+│   │
+│   ├── schemas/
+│   │
+│   ├── constants/
+│   │
+│   └── middleware.ts
+│
+├── .env.local
+├── tailwind.config.ts
+├── components.json
+└── next.config.ts
