@@ -7,6 +7,7 @@ import { pokemonSpecies } from "./pokemon-species.schema";
 import { pokemonTypes }     from "./pokemon-type.schema";
 import { pokemonStats }     from "./pokemon-stat.schema";
 import { pokemonAbilities } from "./pokemon-ability.schema";
+import { pokemonMoves }     from "./pokemon-move.schema";
 
 export const pokemon = pgTable('pokemon', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -47,7 +48,6 @@ export const pokemon = pgTable('pokemon', {
     .notNull(),
 }, (table) => [
   index('pokemon_species_idx').on(table.speciesId),
-  // Quickly find the default form for a species
   index('pokemon_default_form_idx').on(table.speciesId, table.isDefault),
 ]);
 
@@ -59,4 +59,5 @@ export const pokemonRelations = relations(pokemon, ({ one, many }) => ({
   types:     many(pokemonTypes),
   stats:     many(pokemonStats),
   abilities: many(pokemonAbilities),
+  moves:     many(pokemonMoves),
 }));

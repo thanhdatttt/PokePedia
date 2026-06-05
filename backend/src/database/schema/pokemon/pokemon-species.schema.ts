@@ -1,7 +1,11 @@
-import { pgTable, uuid, integer, varchar, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
+import {
+  pgTable, uuid, integer, varchar, text,
+  boolean, timestamp, index,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { generations } from "./generation.schema";
 import { pokemon } from "./pokemon.schema";
+import { evolutionChainNodes } from "./evolution-chain.schema";
 
 export const pokemonSpecies = pgTable('pokemon_species', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -45,14 +49,13 @@ export const pokemonSpecies = pgTable('pokemon_species', {
   index('species_generation_idx').on(table.generationId),
   index('species_legendary_idx').on(table.isLegendary),
   index('species_mythical_idx').on(table.isMythical),
-]
-);
+]);
 
 export const pokemonSpeciesRelations = relations(pokemonSpecies, ({ one, many }) => ({
   generation: one(generations, {
     fields: [pokemonSpecies.generationId],
     references: [generations.id],
   }),
-  // One species has many forms (default + mega + gmax etc.)
   forms: many(pokemon),
+  evolutionChainNode: many(evolutionChainNodes),
 }));

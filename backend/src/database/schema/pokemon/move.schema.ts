@@ -1,6 +1,8 @@
 import { pgTable, uuid, integer, varchar, text, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { types } from "./type.schema";
+import { pokemonMoves } from "./pokemon-move.schema";
+import { evolutionChainNodes } from "./evolution-chain.schema";
 
 export const moves = pgTable('moves', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -35,15 +37,15 @@ export const moves = pgTable('moves', {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-}, (table) => ({
-  // Common query: "all moves of type X" — needs an index
-  moveTypeIdx: index('moves_type_idx').on(table.moveTypeId),
-}));
+}, (table) => [
+  index('moves_type_idx').on(table.moveTypeId),
+]);
 
-// FIX #9: added relations
-export const movesRelations = relations(moves, ({ one }) => ({
+export const movesRelations = relations(moves, ({ one, many }) => ({
   moveType: one(types, {
     fields: [moves.moveTypeId],
     references: [types.id],
   }),
+  learnedBy: many(pokemonMoves),
+  evolutionNodes: many(evolutionChainNodes),
 }));
