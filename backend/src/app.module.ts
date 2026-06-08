@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
 import { DatabaseModule } from './database/database.module';
 import { envValidationSchema } from './config/env.validation';
+import { PokeapiModule } from './pokeapi/pokeapi.module';
 
 @Module({
   imports: [ 
@@ -14,7 +15,7 @@ import { envValidationSchema } from './config/env.validation';
       validationSchema: envValidationSchema
     }), 
     
-    DatabaseModule, AuthModule, RedisModule
+    DatabaseModule, AuthModule, RedisModule, PokeapiModule
   ],
   controllers: [AppController],
   providers: [AppService],
