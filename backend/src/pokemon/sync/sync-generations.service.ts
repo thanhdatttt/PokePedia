@@ -1,7 +1,7 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
 import Pokedex from 'pokedex-promise-v2';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
-import { POKEDEX_CLIENT } from '../pokedex.provider';
+import { POKEDEX_CLIENT } from 'src/common/constants/pokeapi.constant';
 import { DatabaseService } from '../../database/database.service';
 import { generations } from '../../database/schema/pokemon';
 

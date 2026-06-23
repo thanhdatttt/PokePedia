@@ -1,11 +1,11 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import Pokedex from 'pokedex-promise-v2';
 import { sql } from 'drizzle-orm';
-import { POKEDEX_CLIENT } from '../pokedex.provider';
+import { POKEDEX_CLIENT } from 'src/common/constants/pokeapi.constant';
 import { DatabaseService } from '../../database/database.service';
 import { types } from '../../database/schema/pokemon';
 
-// PokeAPI does not provide colors — maintained manually.
+// Type colors
 const TYPE_COLORS: Record<string, string> = {
   normal: '#A8A77A',
   fire: '#EE8130',

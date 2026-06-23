@@ -1,18 +1,17 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
 import Pokedex from 'pokedex-promise-v2';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
-import { POKEDEX_CLIENT } from '../pokedex.provider';
+import { POKEDEX_CLIENT, BATCH_SIZE } from 'src/common/constants/pokeapi.constant';
 import { DatabaseService } from '../../database/database.service';
 import { abilities } from '../../database/schema/pokemon';
-
-const BATCH_SIZE = 20;
 
 @Injectable()
 export class SyncAbilitiesService {
   private readonly logger = new Logger(SyncAbilitiesService.name);
 
   constructor(
-    @Inject(POKEDEX_CLIENT) private readonly pokedex: Pokedex,
+    @Inject(POKEDEX_CLIENT) 
+    private readonly pokedex: Pokedex,
     private readonly db: DatabaseService,
   ) {}
 

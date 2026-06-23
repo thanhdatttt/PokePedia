@@ -1,7 +1,7 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
 import Pokedex from 'pokedex-promise-v2';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
-import { POKEDEX_CLIENT } from '../pokedex.provider';
+import { POKEDEX_CLIENT, BATCH_SIZE } from 'src/common/constants/pokeapi.constant';
 import { DatabaseService } from '../../database/database.service';
 import {
   pokemon,
@@ -13,8 +13,6 @@ import {
   pokemonStats,
   pokemonAbilities,
 } from '../../database/schema/pokemon';
-
-const BATCH_SIZE = 20;
 
 @Injectable()
 export class SyncPokemonService {
@@ -50,18 +48,17 @@ export class SyncPokemonService {
     this.logger.log(`✓ Synced ${results.length} Pokémon.`);
   }
 
-  // ─── Single Pokémon ───────────────────────────────────────────────────────
-
+  // single pokemon
   private async syncOne(name: string): Promise<void> {
     const p = await this.pokedex.getPokemonByName(name);
 
     const speciesId = this.speciesCache.get(p.species.name);
     if (!speciesId) {
-      // Species not synced (can happen with very new entries); skip silently
+      // Species not synced -> skip silently
       return;
     }
 
-    // ── 1. Upsert the pokemon row ───────────────────────────────────────────
+    // Upsert the pokemon row
     const officialArtUrl =
       (p.sprites as any).other?.['official-artwork']?.front_default ?? null;
 
@@ -98,7 +95,7 @@ export class SyncPokemonService {
 
     const pokemonId = pkmnRow.id;
 
-    // ── 2. Sync join tables concurrently ────────────────────────────────────
+    // Sync join tables concurrently
     await Promise.all([
       this.syncTypes(pokemonId, p.types),
       this.syncStats(pokemonId, p.stats),
@@ -106,7 +103,7 @@ export class SyncPokemonService {
     ]);
   }
 
-  // ─── Join tables ──────────────────────────────────────────────────────────
+  // Join tables
 
   private async syncTypes(pokemonId: string, apiTypes: any[]): Promise<void> {
     // Delete-then-insert: simpler than upsert on composite PK
@@ -167,8 +164,7 @@ export class SyncPokemonService {
     }
   }
 
-  // ─── Cache builders ───────────────────────────────────────────────────────
-
+  // Cache builders
   private async buildCaches(): Promise<void> {
     this.logger.log('  Building lookup caches...');
 

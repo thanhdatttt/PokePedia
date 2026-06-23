@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PokemonController } from './pokemon.controller';
 import { PokemonService } from './pokemon.service';
-import { pokedexProvider } from './pokedex.provider';
 import { SyncService } from './sync/sync.service';
 import { SyncGenerationsService } from './sync/sync-generations.service';
 import { SyncTypesService } from './sync/sync-types.service';
@@ -15,7 +14,6 @@ import { SyncPokemonService } from './sync/sync-pokemon.service';
   controllers: [PokemonController],
   providers: [
     PokemonService,
-    pokedexProvider,
     SyncService,
     SyncGenerationsService,
     SyncTypesService,

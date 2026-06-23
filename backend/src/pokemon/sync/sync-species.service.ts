@@ -1,7 +1,7 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
 import Pokedex from 'pokedex-promise-v2';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
-import { POKEDEX_CLIENT } from '../pokedex.provider';
+import { POKEDEX_CLIENT, BATCH_SIZE } from 'src/common/constants/pokeapi.constant';
 import { DatabaseService } from '../../database/database.service';
 import {
   generations,
@@ -10,8 +10,6 @@ import {
   evolutionChainNodes,
   items,
 } from '../../database/schema/pokemon';
-
-const BATCH_SIZE = 20;
 
 @Injectable()
 export class SyncSpeciesService {
@@ -60,8 +58,7 @@ export class SyncSpeciesService {
     this.logger.log(`✓ Synced ${results.length} species and their evolution chains.`);
   }
 
-  // ─── Species ─────────────────────────────────────────────────────────────
-
+  // Species
   private async syncSpecies(name: string): Promise<void> {
     const species = await this.pokedex.getPokemonSpeciesByName(name);
 
@@ -80,7 +77,7 @@ export class SyncSpeciesService {
       .values({
         pokeApiId: species.id,
         name: species.name,
-        slug: species.name, // PokeAPI names are already URL-safe slugs
+        slug: species.name,
         isLegendary: species.is_legendary,
         isMythical: species.is_mythical,
         isBaby: species.is_baby,
@@ -110,8 +107,7 @@ export class SyncSpeciesService {
     this.speciesCache.set(species.name, row.id);
   }
 
-  // ─── Evolution Chains ─────────────────────────────────────────────────────
-
+  // Evolution Chains
   private async syncEvolutionChainForSpecies(name: string): Promise<void> {
     const species = await this.pokedex.getPokemonSpeciesByName(name);
     const chainUrl = species.evolution_chain?.url;
@@ -202,8 +198,7 @@ export class SyncSpeciesService {
     }
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-
+  // Helpers
   private async buildGenerationCache(): Promise<void> {
     const rows = await this.db.db
       .select({ id: generations.id, name: generations.name })

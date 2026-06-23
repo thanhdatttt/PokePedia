@@ -1,14 +1,12 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
 import Pokedex from 'pokedex-promise-v2';
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { POKEDEX_CLIENT, BATCH_SIZE } from 'src/common/constants/pokeapi.constant';
 import { sql } from 'drizzle-orm';
-import { POKEDEX_CLIENT } from '../pokedex.provider';
 import { DatabaseService } from '../../database/database.service';
 import { items } from '../../database/schema/pokemon';
 
-const BATCH_SIZE = 20;
-
-// Maps PokeAPI item category slugs → your itemCategoryEnum values.
-// PokeAPI has ~50 sub-categories; we fold them into your 9 enum values.
+// Maps PokeAPI item category slugs → itemCategoryEnum values.
+// PokeAPI has ~50 sub-categories -> fold them into 9 enum values.
 const CATEGORY_MAP: Record<string, string> = {
   // Pokéballs
   'standard-balls': 'pokeball',

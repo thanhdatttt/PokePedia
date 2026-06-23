@@ -10,13 +10,7 @@ export class PokemonController {
     private readonly syncService: SyncService,
   ) {}
 
-  /**
-   * POST /pokemon/sync
-   * Kick off a full sync in the background.
-   *
-   * Query params:
-   *   ?limit=20   → dev mode, only fetch first N records per resource
-   */
+  // sync data
   @Public()
   @Post('sync')
   triggerSync(@Query('limit') limit?: string) {
@@ -35,10 +29,7 @@ export class PokemonController {
     };
   }
 
-  /**
-   * GET /pokemon/sync/status
-   * Check whether a sync is currently running.
-   */
+  // sync status
   @Get('sync/status')
   syncStatus() {
     return { running: this.syncService.isRunning() };

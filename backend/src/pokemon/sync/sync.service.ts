@@ -8,7 +8,7 @@ import { SyncSpeciesService } from './sync-species.service';
 import { SyncPokemonService } from './sync-pokemon.service';
 
 export interface SyncOptions {
-  /** Cap the number of records fetched per resource. Useful during dev (e.g. limit=20). */
+  /** the number of records fetched per resource. */
   limit?: number;
 }
 
