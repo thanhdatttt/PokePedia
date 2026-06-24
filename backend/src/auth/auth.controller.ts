@@ -6,12 +6,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { AuthService, TokenPair } from './auth.service';
-import { SendOtpDto } from './dto/sendOtp.dto';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { OtpDto } from './dto/otp.dto';
-import { RefreshTokenDto } from './dto/refreshToken.dto';
-import { ResetPassDto } from './dto/resetPass.dto';
+import { SendOtpDto } from './dtos/sendOtp.dto';
+import { RegisterDto } from './dtos/register.dto';
+import { LoginDto } from './dtos/login.dto';
+import { OtpDto } from './dtos/otp.dto';
+import { RefreshTokenDto } from './dtos/refreshToken.dto';
+import { ResetPassDto } from './dtos/resetPass.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('auth')

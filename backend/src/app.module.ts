@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
 import { DatabaseModule } from './database/database.module';
 import { envValidationSchema } from './config/env.validation';
+import { PokemonModule } from './pokemon/pokemon.module';
 
 @Module({
   imports: [ 
@@ -14,7 +15,7 @@ import { envValidationSchema } from './config/env.validation';
       validationSchema: envValidationSchema
     }), 
     
-    DatabaseModule, AuthModule, RedisModule
+    DatabaseModule, AuthModule, RedisModule, PokemonModule
   ],
   controllers: [AppController],
   providers: [AppService],
