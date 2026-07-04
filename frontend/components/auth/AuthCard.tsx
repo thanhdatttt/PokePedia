@@ -14,7 +14,7 @@ export function AuthCard({
       <CardHeader className="space-y-1 pb-2 text-center">
         <CardTitle className="text-3xl font-semibold">{title}</CardTitle>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-md text-muted-foreground">{description}</p>
         )}
       </CardHeader>
       <CardContent>{children}</CardContent>

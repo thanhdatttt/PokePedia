@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/stores/auth.store";
+import { Error } from "../util/Error";
 
 export function OtpStep({
   email,
@@ -18,21 +20,24 @@ export function OtpStep({
   const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  const verifyOTP = useAuthStore((state) => state.verifyOTP);
+  const sendOTP = useAuthStore((state) => state.sendOTP);
+
   async function handleVerify() {
     setError(null);
     setLoading(true);
     try {
-      // TODO: replace with verify otp api
+      await verifyOTP(email, otp);
       onVerified();
     } catch {
-      setError("That code didn't work. Check it and try again.");
+      setError("The code didn't work. Please check or resend.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleResend() {
-    // TODO: replace with resend otp api
+    await sendOTP(email);
     setResendCooldown(30);
     const interval = setInterval(() => {
       setResendCooldown((s) => {
@@ -43,25 +48,34 @@ export function OtpStep({
   }
 
   return (
-    <div className="space-y-5">
-      <p className="text-center text-sm text-muted-foreground">
-        We sent a 6-digit code to <span className="font-medium text-foreground">{email}</span>
+    <div className="space-y-6">
+      <p className="text-center text-base text-muted-foreground">
+        We sent a 6-digit code to{" "}
+        <span className="font-semibold text-foreground">
+          {email}
+        </span>
       </p>
 
       <div className="flex justify-center">
         <InputOTP maxLength={6} value={otp} onChange={setOtp}>
           <InputOTPGroup>
             {[0, 1, 2, 3, 4, 5].map((i) => (
-              <InputOTPSlot key={i} index={i} />
+              <InputOTPSlot
+                key={i}
+                index={i}
+                className="h-12 w-12 rounded-xl text-lg font-semibold"
+              />
             ))}
           </InputOTPGroup>
         </InputOTP>
       </div>
 
-      {error && <p className="text-center text-sm text-destructive">{error}</p>}
+      {error && (
+        <Error error={error} />
+      )}
 
       <Button
-        className="w-full rounded-full"
+        className="h-12 w-full rounded-full text-base font-semibold"
         size="lg"
         disabled={otp.length !== 6 || loading}
         onClick={handleVerify}
@@ -69,17 +83,24 @@ export function OtpStep({
         {loading ? "Verifying..." : "Verify"}
       </Button>
 
-      <div className="flex items-center justify-between text-sm">
-        <button type="button" onClick={onBack} className="text-muted-foreground hover:text-foreground">
+      <div className="flex items-center justify-between text-base">
+        <button
+          type="button"
+          onClick={onBack}
+          className="font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
           Back
         </button>
+
         <button
           type="button"
           onClick={handleResend}
           disabled={resendCooldown > 0}
-          className="text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
+          className="font-medium text-primary transition-colors hover:underline disabled:text-muted-foreground disabled:no-underline"
         >
-          {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+          {resendCooldown > 0
+            ? `Resend in ${resendCooldown}s`
+            : "Resend code"}
         </button>
       </div>
     </div>

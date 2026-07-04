@@ -1,68 +1,66 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
+import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StepIndicator } from "./StepIndicator";
 import { StepTransition } from "./StepTransition";
 import { OtpStep } from "./OTPStep";
+import { Error } from "../util/Error";
 
 const STEPS = ["Email", "Verify", "Reset"];
 
 export function ForgotPasswordForm() {
   const [step, setStep] = useState(0);
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [stepLoading, setStepLoading] = useState(false);
+  const [stepError, setStepError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  const resetPassword = useAuthStore((state) => state.resetPassword);
+  const sendOTP = useAuthStore((state) => state.sendOTP);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const resetError = useAuthStore((state) => state.error);
+  const clearError = useAuthStore((state) => state.clearError);
+
+  const error = resetError || stepError;
 
   async function handleEmailSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setStepError(null);
+    setStepLoading(true);
     try {
-      const res = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        body: JSON.stringify({ email, purpose: "reset" }),
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) throw new Error();
+      await sendOTP(email);
       setStep(1);
     } catch {
-      setError("Couldn't find an account with that email.");
+      setStepError("Couldn't find an account with that email.");
     } finally {
-      setLoading(false);
+      setStepLoading(false);
     }
   }
 
-  async function handleResetSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleResetSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null);
+    clearError();
+    setStepError(null);
 
     const formData = new FormData(e.currentTarget);
-    const password = formData.get("password");
-    const confirmPassword = formData.get("confirmPassword");
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
 
-    if (password !== confirmPassword) {
-      setError("Passwords don't match.");
+    if (newPassword !== confirmPassword) {
+      setStepError("Passwords don't match.");
       return;
     }
 
-    setLoading(true);
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) throw new Error();
+      await resetPassword(email, newPassword);
       setDone(true);
     } catch {
-      setError("Couldn't reset your password. Try again.");
-    } finally {
-      setLoading(false);
+      // resetError from the store is rendered below
     }
   }
 
@@ -80,36 +78,51 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       <StepIndicator steps={STEPS} current={step} />
 
       <StepTransition stepKey={step}>
         {step === 0 && (
-          <form onSubmit={handleEmailSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+          <form onSubmit={handleEmailSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-base font-medium">
+                Email
+              </Label>
+
               <Input
                 id="email"
                 type="email"
                 placeholder="ash@pokepedia.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-xl text-base"
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                We'll send a 6-digit code to confirm it's you.
+
+              <p className="text-sm text-muted-foreground">
+                We'll send a 6-digit verification code to confirm it's you.
               </p>
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {stepError && (
+              <Error error={stepError} />
+            )}
 
-            <Button type="submit" className="w-full rounded-full" size="lg" disabled={loading}>
-              {loading ? "Sending code..." : "Send code"}
+            <Button
+              type="submit"
+              className="h-12 w-full rounded-full text-base font-semibold"
+              size="lg"
+              disabled={stepLoading}
+            >
+              {stepLoading ? "Sending code..." : "Send code"}
             </Button>
 
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-base text-muted-foreground">
               Remember your password?{" "}
-              <Link href="/login" className="font-medium text-primary hover:underline">
+              <Link
+                href="/login"
+                className="font-semibold text-primary transition-colors hover:underline"
+              >
                 Login
               </Link>
             </p>
@@ -117,26 +130,64 @@ export function ForgotPasswordForm() {
         )}
 
         {step === 1 && (
-          <OtpStep email={email} onVerified={() => setStep(2)} onBack={() => setStep(0)} />
+          <OtpStep
+            email={email}
+            onVerified={() => setStep(2)}
+            onBack={() => setStep(0)}
+          />
         )}
 
         {step === 2 && (
-          <form onSubmit={handleResetSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="password">New password</Label>
-              <Input id="password" name="password" type="password" placeholder="••••••••" minLength={8} required />
-              <p className="text-xs text-muted-foreground">At least 8 characters</p>
+          <form onSubmit={handleResetSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-base font-medium">
+                New Password
+              </Label>
+
+              <Input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                placeholder="••••••••"
+                minLength={8}
+                className="h-12 rounded-xl text-base"
+                required
+              />
+
+              <p className="text-sm text-muted-foreground">
+                At least 8 characters
+              </p>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="confirmPassword">Confirm new password</Label>
-              <Input id="confirmPassword" name="confirmPassword" type="password" placeholder="••••••••" required />
+            <div className="space-y-2">
+              <Label
+                htmlFor="confirmPassword"
+                className="text-base font-medium"
+              >
+                Confirm New Password
+              </Label>
+
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                className="h-12 rounded-xl text-base"
+                required
+              />
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {(error) && (
+              <Error error={error} />
+            )}
 
-            <Button type="submit" className="w-full rounded-full" size="lg" disabled={loading}>
-              {loading ? "Resetting..." : "Reset password"}
+            <Button
+              type="submit"
+              className="h-12 w-full rounded-full text-base font-semibold"
+              size="lg"
+              disabled={isLoading}
+            >
+              {isLoading ? "Resetting..." : "Reset Password"}
             </Button>
           </form>
         )}
