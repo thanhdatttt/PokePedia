@@ -16,7 +16,10 @@ async function bootstrap() {
   );
 
   // CORS
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.CLIENT_URL!,
+    credentials: true,
+  });
 
   // Global guard
   const reflector = app.get(Reflector);

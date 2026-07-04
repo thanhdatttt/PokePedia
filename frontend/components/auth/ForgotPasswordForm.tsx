@@ -33,10 +33,10 @@ export function ForgotPasswordForm() {
     setStepError(null);
     setStepLoading(true);
     try {
-      await sendOTP(email);
+      await sendOTP(email, "RESET");
       setStep(1);
     } catch {
-      setStepError("Couldn't find an account with that email.");
+      setStepError("Can not find an account with that email.");
     } finally {
       setStepLoading(false);
     }
@@ -132,6 +132,7 @@ export function ForgotPasswordForm() {
         {step === 1 && (
           <OtpStep
             email={email}
+            type="RESET"
             onVerified={() => setStep(2)}
             onBack={() => setStep(0)}
           />

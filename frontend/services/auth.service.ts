@@ -31,9 +31,9 @@ export const authService = {
     }
   },
 
-  sendOTP: async (email: string) => {
+  sendOTP: async (email: string, type: string) => {
     try {
-      const res = await authClient.post("/send-otp", {email});
+      const res = await authClient.post("/send-otp", {email, type});
       return res.data;
     } catch (err: any) {
       console.log(err);
@@ -41,9 +41,9 @@ export const authService = {
     }
   },
 
-  verifyOTP: async (email: string, otp: string) => {
+  verifyOTP: async (email: string, otp: string, type: string) => {
     try {
-      const res = await authClient.post("/verify-otp", {email, otp});
+      const res = await authClient.post("/verify-otp", {email, otp, type});
       return res.data;
     } catch (err: any) {
       console.log(err);

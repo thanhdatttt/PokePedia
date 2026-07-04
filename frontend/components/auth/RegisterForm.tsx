@@ -38,10 +38,10 @@ export function RegisterForm() {
     setStepError(null);
     setStepLoading(true);
     try {
-      await sendOTP(email);
+      await sendOTP(email, "REGISTER");
       setStep(1);
-    } catch {
-      setStepError("Couldn't send a code to that address. Try again.");
+    } catch (err: any) {
+      setStepError(err.message);
     } finally {
       setStepLoading(false);
     }
@@ -123,6 +123,7 @@ export function RegisterForm() {
         {step === 1 && (
           <OtpStep
             email={email}
+            type="REGISTER"
             onVerified={() => setStep(2)}
             onBack={() => setStep(0)}
           />

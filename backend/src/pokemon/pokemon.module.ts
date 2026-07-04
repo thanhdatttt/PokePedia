@@ -9,11 +9,13 @@ import { SyncAbilitiesService } from './sync/sync-abilities.service';
 import { SyncItemsService } from './sync/sync-items.service';
 import { SyncSpeciesService } from './sync/sync-species.service';
 import { SyncPokemonService } from './sync/sync-pokemon.service';
+import { PokedexClientProvider } from './pokedex.provider';
 
 @Module({
   controllers: [PokemonController],
   providers: [
     PokemonService,
+    PokedexClientProvider,
     SyncService,
     SyncGenerationsService,
     SyncTypesService,

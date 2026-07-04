@@ -3,7 +3,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { config } from "./config";
 
 export const authClient = axios.create({
-  baseURL: `${config.NEXT_PUBLIC_API_URL}/api/auth`,
+  baseURL: `${config.NEXT_PUBLIC_API_URL}/auth`,
   withCredentials: true,
 });
 

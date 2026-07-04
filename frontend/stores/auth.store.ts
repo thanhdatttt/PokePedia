@@ -80,10 +80,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      sendOTP: async (email) => {
+      sendOTP: async (email, type) => {
         try {
           set({ isLoading: true });
-          await authService.sendOTP(email);
+          await authService.sendOTP(email, type);
         } catch (err: any) {
           console.log(err);
           set({ error: getErrorMessage(err, "Can not send OTP right now.  Please try again.") });
@@ -93,10 +93,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      verifyOTP: async (email, otp) => {
+      verifyOTP: async (email, otp, type) => {
         try {
           set({ isLoading: true });
-          await authService.verifyOTP(email, otp);
+          await authService.verifyOTP(email, otp, type);
         } catch (err: any) {
           console.log(err);
           throw err;

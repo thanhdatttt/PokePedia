@@ -18,8 +18,8 @@ export interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
-  sendOTP: (email: string) => Promise<void>;
-  verifyOTP: (email: string, otp: string) => Promise<void>;
+  sendOTP: (email: string, type: string) => Promise<void>;
+  verifyOTP: (email: string, otp: string, type: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   bootstrap: () => Promise<void>;

@@ -8,10 +8,12 @@ import { Error } from "../util/Error";
 
 export function OtpStep({
   email,
+  type,
   onVerified,
   onBack,
 }: {
   email: string;
+  type: string,
   onVerified: () => void;
   onBack: () => void;
 }) {
@@ -27,7 +29,7 @@ export function OtpStep({
     setError(null);
     setLoading(true);
     try {
-      await verifyOTP(email, otp);
+      await verifyOTP(email, otp, type);
       onVerified();
     } catch {
       setError("The code didn't work. Please check or resend.");
@@ -37,8 +39,8 @@ export function OtpStep({
   }
 
   async function handleResend() {
-    await sendOTP(email);
-    setResendCooldown(30);
+    await sendOTP(email, type);
+    setResendCooldown(60);
     const interval = setInterval(() => {
       setResendCooldown((s) => {
         if (s <= 1) clearInterval(interval);
