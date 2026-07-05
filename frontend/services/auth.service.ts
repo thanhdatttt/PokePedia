@@ -2,81 +2,42 @@ import { api, authClient } from "@/lib/api";
 
 export const authService = {
   login: async (email: string, password: string) => {
-    try {
-      const res = await authClient.post("/login", {email, password});
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/login", { email, password });
+    return { data: res.data, message: res.message };
   },
 
   register: async (username: string, email: string, password: string) => {
-    try {
-      const res = await authClient.post("/register", {username, email, password});
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/register", { username, email, password });
+    return { data: res.data, message: res.message };
   },
 
   resetPassword: async (email: string, newPassword: string) => {
-    try {
-      const res = await authClient.post("/reset-password", {email, newPassword});
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/reset-password", { email, newPassword });
+    return { data: res.data, message: res.message };
   },
 
   sendOTP: async (email: string, type: string) => {
-    try {
-      const res = await authClient.post("/send-otp", {email, type});
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/send-otp", { email, type });
+    return { data: res.data, message: res.message };
   },
 
   verifyOTP: async (email: string, otp: string, type: string) => {
-    try {
-      const res = await authClient.post("/verify-otp", {email, otp, type});
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/verify-otp", { email, otp, type });
+    return { data: res.data, message: res.message };
   },
 
   logout: async () => {
-    try {
-      await authClient.post("/logout");
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/logout");
+    return { data: res.data, message: res.message };
   },
 
   refresh: async () => {
-    try {
-      const res = await authClient.post("/refresh");
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+    const res = await authClient.post("/refresh");
+    return { data: res.data, message: res.message };
   },
 
   fetchMe: async () => {
-    try {
-      const res = await api.post("/users/me");
-      return res.data;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
-  }
-}
+    const res = await api.post("/users/me");
+    return { data: res.data, message: res.message };
+  },
+};

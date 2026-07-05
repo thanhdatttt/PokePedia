@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 export const orbitron = Orbitron({
   subsets: ["latin"],
@@ -38,6 +39,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>{children}</AuthProvider>
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

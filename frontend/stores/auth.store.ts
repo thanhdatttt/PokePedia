@@ -2,10 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AuthState } from "@/types/store";
 import { authService } from "@/services/auth.service";
-
-function getErrorMessage(err: any, fallback: string): string {
-  return err?.response?.data?.message ?? fallback;
-}
+import { getErrorMessage } from "@/lib/utils";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -16,6 +13,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       isInitialized: false,
       error: null,
+      message: null,
 
       setAccessToken: (accessToken) => {
         set({ accessToken });
@@ -33,6 +31,10 @@ export const useAuthStore = create<AuthState>()(
         set({ error: null });
       },
 
+      clearMessage: () => {
+        set({ message: null });
+      },
+
       clearState: () => {
         set({ user: null, accessToken: null, isAuthenticated: false });
         localStorage.removeItem("pokepedia-auth");
@@ -41,11 +43,16 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email, password) => {
         try {
-          set({ isLoading: true });
-          const res = await authService.login(email, password);
-          set({ user: res.user, accessToken: res.accessToken, isAuthenticated: true });
+          set({ isLoading: true, error: null });
+          const { data, message } = await authService.login(email, password);
+          set({
+            accessToken: data.accessToken,
+            isAuthenticated: true,
+            message,
+          });
+          
+          await get().fetchMe();
         } catch (err: any) {
-          console.log(err);
           set({ error: getErrorMessage(err, "Invalid email or password.") });
           throw err;
         } finally {
@@ -55,10 +62,10 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (username, email, password) => {
         try {
-          set({ isLoading: true });
-          const res = await authService.register(username, email, password);
+          set({ isLoading: true, error: null });
+          const { message } = await authService.register(username, email, password);
+          set({ message });
         } catch (err: any) {
-          console.log(err);
           set({ error: getErrorMessage(err, "Can not create your account. Please try again.") });
           throw err;
         } finally {
@@ -69,11 +76,10 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (email, newPassword) => {
         try {
           set({ isLoading: true, error: null });
-          await authService.resetPassword(email, newPassword);
+          const { message } = await authService.resetPassword(email, newPassword);
+          set({ message });
         } catch (err: any) {
-          set({
-            error: getErrorMessage(err, "Can not reset your password. Please try again."),
-          });
+          set({ error: getErrorMessage(err, "Can not reset your password. Please try again.") });
           throw err;
         } finally {
           set({ isLoading: false });
@@ -82,11 +88,11 @@ export const useAuthStore = create<AuthState>()(
 
       sendOTP: async (email, type) => {
         try {
-          set({ isLoading: true });
-          await authService.sendOTP(email, type);
+          set({ isLoading: true, error: null });
+          const { message } = await authService.sendOTP(email, type);
+          set({ message });
         } catch (err: any) {
-          console.log(err);
-          set({ error: getErrorMessage(err, "Can not send OTP right now.  Please try again.") });
+          set({ error: getErrorMessage(err, "Can not send OTP right now. Please try again.") });
           throw err;
         } finally {
           set({ isLoading: false });
@@ -95,10 +101,11 @@ export const useAuthStore = create<AuthState>()(
 
       verifyOTP: async (email, otp, type) => {
         try {
-          set({ isLoading: true });
-          await authService.verifyOTP(email, otp, type);
+          set({ isLoading: true, error: null });
+          const { message } = await authService.verifyOTP(email, otp, type);
+          set({ message });
         } catch (err: any) {
-          console.log(err);
+          set({ error: getErrorMessage(err, "Invalid or expired OTP.") });
           throw err;
         } finally {
           set({ isLoading: false });
@@ -121,10 +128,10 @@ export const useAuthStore = create<AuthState>()(
       refresh: async () => {
         try {
           set({ isLoading: true });
-          
+
           const { user, setAccessToken, fetchMe } = get();
-          const res = await authService.refresh();
-          setAccessToken(res.accessToken);
+          const { data } = await authService.refresh();
+          setAccessToken(data.accessToken);
 
           if (!user) {
             await fetchMe();
@@ -151,7 +158,7 @@ export const useAuthStore = create<AuthState>()(
       fetchMe: async () => {
         try {
           set({ isLoading: true });
-          const user = await authService.fetchMe();
+          const { data: user } = await authService.fetchMe();
           set({ user });
         } catch (err: any) {
           console.log(err);

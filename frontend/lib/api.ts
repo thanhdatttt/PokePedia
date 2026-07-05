@@ -13,7 +13,6 @@ declare module "axios" {
 
 // Unwraps { success, statusCode, message, data } into response.data = data,
 // and hangs `message` off the response object for callers that want it
-// (e.g. to show a toast). Runs on every successful response.
 function unwrapEnvelope(res: AxiosResponse) {
   const body = res.data;
   if (body && typeof body === "object" && "success" in body && body.success) {
