@@ -13,6 +13,7 @@ import { OtpDto } from './dtos/otp.dto';
 import { RefreshTokenDto } from './dtos/refreshToken.dto';
 import { ResetPassDto } from './dtos/resetPass.dto';
 import { Public } from 'src/common/decorators/public.decorator';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +23,7 @@ export class AuthController {
   @Public()
   @Post('send-otp')
   @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Verification code sent. Check your email.')
   sendOtp(@Body() dto: SendOtpDto) {
     return this.authService.sendOtp(dto);
   }
@@ -36,6 +38,7 @@ export class AuthController {
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @ResponseMessage('Account registered successfully')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -43,6 +46,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Login successful')
   login(@Body() dto: LoginDto): Promise<TokenPair> {
     return this.authService.login(dto);
   }
@@ -57,6 +61,7 @@ export class AuthController {
   @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Password reset successfully')
   resetPassword(@Body() dto: ResetPassDto) {
     return this.authService.resetPassword(dto);
   }
@@ -64,6 +69,7 @@ export class AuthController {
   // protected route
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @ResponseMessage('Logout successful')
   logout(@Body() dto: RefreshTokenDto) {
     return this.authService.logout(dto);
   }

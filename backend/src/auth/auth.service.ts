@@ -65,9 +65,11 @@ export class AuthService {
 
       if (user) {
         await this.generateAndSendOtp(dto.email, 'RESET');
+      } else {
+        throw new NotFoundException('Email not found');
       }
 
-      return { message: 'If that email is registered, a reset code has been sent.' };
+      return { message: 'A reset code has been sent.' };
     }
 
     throw new BadRequestException('Unknown OTP type');
