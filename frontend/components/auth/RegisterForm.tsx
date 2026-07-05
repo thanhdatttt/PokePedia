@@ -33,7 +33,7 @@ export function RegisterForm() {
   const error = registerError || stepError;
 
   // Step 0: email
-  async function handleEmailSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+  async function handleEmailSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setStepError(null);
     setStepLoading(true);
@@ -41,7 +41,7 @@ export function RegisterForm() {
       await sendOTP(email, "REGISTER");
       setStep(1);
     } catch (err: any) {
-      setStepError(err.message);
+      setStepError(err.message ? err.message : "Can not find an account with that email.");
     } finally {
       setStepLoading(false);
     }
@@ -67,7 +67,7 @@ export function RegisterForm() {
       await register(username, email, password);
       router.push("/login");
     } catch (err: any) {
-      console.log(err);
+      setStepError(err.message ? err.message : "Can not create your account. Please try again.");
       throw err;
     }
   }
@@ -175,7 +175,7 @@ export function RegisterForm() {
               </div>
 
               <p className="text-sm text-muted-foreground">
-                At least 8 characters
+                At least 8 characters with uppercase, numbers, and symbols.
               </p>
             </div>
 

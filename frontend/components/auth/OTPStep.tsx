@@ -31,8 +31,8 @@ export function OtpStep({
     try {
       await verifyOTP(email, otp, type);
       onVerified();
-    } catch {
-      setError("The code didn't work. Please check or resend.");
+    } catch (err: any) {
+      setError(err.message ? err.message : "The code didn't work. Please check or resend.");
     } finally {
       setLoading(false);
     }
