@@ -65,9 +65,11 @@ export class AuthService {
 
       if (user) {
         await this.generateAndSendOtp(dto.email, 'RESET');
+      } else {
+        throw new NotFoundException('Email not found');
       }
 
-      return { message: 'If that email is registered, a reset code has been sent.' };
+      return { message: 'A reset code has been sent.' };
     }
 
     throw new BadRequestException('Unknown OTP type');
@@ -83,7 +85,7 @@ export class AuthService {
     }
 
     if (storedOtp !== dto.otp) {
-      throw new BadRequestException('Invalid OTP.');
+      throw new BadRequestException('Incorrett OTP.');
     }
 
     // Consume OTP — one-time use
@@ -160,12 +162,12 @@ export class AuthService {
       .limit(1);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Incorrect email or password');
     }
 
     const passwordMatch = await HashUtil.comparePassword(dto.password, user.passwordHash);
     if (!passwordMatch) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Incorrect email or password');
     }
 
     return this.generateTokenPair(user.id, user.email);
@@ -187,12 +189,12 @@ export class AuthService {
     }
 
     if (!matchedToken) {
-      throw new UnauthorizedException('Refresh token not recognised — please log in again');
+      throw new UnauthorizedException('Refresh not recognised — please log in again');
     }
 
     if (matchedToken.expiresAt < new Date()) {
       await this.db.db.delete(refreshTokens).where(eq(refreshTokens.id, matchedToken.id));
-      throw new UnauthorizedException('Refresh token expired — please log in again');
+      throw new UnauthorizedException('Refresh expired — please log in again');
     }
 
     await this.db.db.delete(refreshTokens).where(eq(refreshTokens.id, matchedToken.id));
@@ -229,7 +231,7 @@ export class AuthService {
   async resetPassword(dto: ResetPassDto): Promise<{ message: string }> {
     const isVerified = await this.redis.getOtp(key.resetVerified(dto.email));
     if (!isVerified) {
-      throw new BadRequestException('Not authorised. Please verify your OTP first.');
+      throw new BadRequestException('Not verified. Please verify your OTP first.');
     }
 
     const [user] = await this.db.db

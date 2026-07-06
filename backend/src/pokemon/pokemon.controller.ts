@@ -2,6 +2,7 @@ import { Controller, Post, Query, Get } from '@nestjs/common';
 import { PokemonService } from './pokemon.service';
 import { SyncService } from './sync/sync.service';
 import { Public } from 'src/common/decorators/public.decorator';
+import { SyncPokemonQueryDto } from './dtos/syncQuery.dto';
 
 @Controller('pokemon')
 export class PokemonController {
@@ -13,19 +14,19 @@ export class PokemonController {
   // sync data
   @Public()
   @Post('sync')
-  triggerSync(@Query('limit') limit?: string) {
+  triggerSync(@Query() query: SyncPokemonQueryDto) {
     if (this.syncService.isRunning()) {
       return { message: 'Sync already in progress.' };
     }
 
-    const options = limit ? { limit: parseInt(limit) } : {};
+    const options = query.limit ? { limit: query.limit } : {};
 
     // Fire and forget — don't block the HTTP response
     this.syncService.syncAll(options).catch(console.error);
 
     return {
       message: 'Sync started.',
-      mode: limit ? `dev (limit=${limit})` : 'full',
+      mode: query.limit ? `dev (limit=${query.limit})` : 'full',
     };
   }
 

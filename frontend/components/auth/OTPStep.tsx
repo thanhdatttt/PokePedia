@@ -5,6 +5,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth.store";
 import { Error } from "../util/Error";
+import { otpSchema } from "@/lib/validations/auth.schema";
+import { showApiError } from "@/lib/toast";
 
 export function OtpStep({
   email,
@@ -19,34 +21,39 @@ export function OtpStep({
 }) {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const verifyOTP = useAuthStore((state) => state.verifyOTP);
   const sendOTP = useAuthStore((state) => state.sendOTP);
 
   async function handleVerify() {
-    setError(null);
+    const result = otpSchema.safeParse({ otp });
+    if (!result.success) return; // button is disabled until 6 digits anyway
+
     setLoading(true);
     try {
-      await verifyOTP(email, otp, type);
+      await verifyOTP(email, result.data.otp, type);
       onVerified();
-    } catch {
-      setError("The code didn't work. Please check or resend.");
+    } catch (err) {
+      showApiError(err, "Incorrect or expired OTP.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleResend() {
-    await sendOTP(email, type);
-    setResendCooldown(60);
-    const interval = setInterval(() => {
-      setResendCooldown((s) => {
-        if (s <= 1) clearInterval(interval);
-        return s - 1;
-      });
-    }, 1000);
+    try {
+      await sendOTP(email, type);
+      setResendCooldown(60);
+      const interval = setInterval(() => {
+        setResendCooldown((s) => {
+          if (s <= 1) clearInterval(interval);
+          return s - 1;
+        });
+      }, 1000);
+    } catch {
+      // toasted globally
+    }
   }
 
   return (
@@ -71,10 +78,6 @@ export function OtpStep({
           </InputOTPGroup>
         </InputOTP>
       </div>
-
-      {error && (
-        <Error error={error} />
-      )}
 
       <Button
         className="h-12 w-full rounded-full text-base font-semibold"
