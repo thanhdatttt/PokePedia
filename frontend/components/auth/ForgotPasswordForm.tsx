@@ -11,6 +11,8 @@ import { StepIndicator } from "./StepIndicator";
 import { StepTransition } from "./StepTransition";
 import { OtpStep } from "./OTPStep";
 import { Error } from "../util/Error";
+import { emailStepSchema, fieldErrorsFrom, resetPasswordSchema } from "@/lib/validations/auth.schema";
+import { showApiError } from "@/lib/toast";
 
 const STEPS = ["Email", "Verify", "Reset"];
 
@@ -18,27 +20,30 @@ export function ForgotPasswordForm() {
   const [step, setStep] = useState(0);
   const [email, setEmail] = useState("");
   const [stepLoading, setStepLoading] = useState(false);
-  const [stepError, setStepError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [done, setDone] = useState(false);
 
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const sendOTP = useAuthStore((state) => state.sendOTP);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const resetError = useAuthStore((state) => state.error);
-  const clearError = useAuthStore((state) => state.clearError);
-
-  const error = resetError || stepError;
 
   async function handleEmailSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStepError(null);
+    setFieldErrors({});
+
+    const result = emailStepSchema.safeParse({ email });
+    if (!result.success) {
+      setFieldErrors(fieldErrorsFrom(result));
+      return;
+    }
+
     setStepLoading(true);
     try {
-      await sendOTP(email, "RESET");
+      await sendOTP(result.data.email, "RESET");
       setStep(1);
-    } catch (err: any) {
-      setStepError(err.message ? err.message : "Can not find an account with that email.");
+    } catch (err) {
+      showApiError(err, "Failed to send OTP. Please try again.");
     } finally {
       setStepLoading(false);
     }
@@ -46,23 +51,25 @@ export function ForgotPasswordForm() {
 
   async function handleResetSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    clearError();
-    setStepError(null);
+    setFieldErrors({});
 
     const formData = new FormData(e.currentTarget);
-    const newPassword = formData.get("newPassword") as string;
-    const confirmPassword = formData.get("confirmPassword") as string;
+    const input = {
+      newPassword: formData.get("newPassword") as string,
+      confirmPassword: formData.get("confirmPassword") as string,
+    };
 
-    if (newPassword !== confirmPassword) {
-      setStepError("Passwords don't match.");
+    const result = resetPasswordSchema.safeParse(input);
+    if (!result.success) {
+      setFieldErrors(fieldErrorsFrom(result));
       return;
     }
 
     try {
-      await resetPassword(email, newPassword);
+      await resetPassword(email, result.data.newPassword);
       setDone(true);
-    } catch (err: any) {
-      setStepError(err.message ? err.message : "Can not reset your password. Please try again.");
+    } catch (err) {
+      showApiError(err, "Failed to reset your password. Please try again.");
     }
   }
 
@@ -85,7 +92,7 @@ export function ForgotPasswordForm() {
 
       <StepTransition stepKey={step}>
         {step === 0 && (
-          <form onSubmit={handleEmailSubmit} className="space-y-6">
+          <form onSubmit={handleEmailSubmit} className="space-y-6" noValidate>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-base font-medium">
                 Email
@@ -98,17 +105,14 @@ export function ForgotPasswordForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12 rounded-xl text-base"
-                required
               />
 
               <p className="text-sm text-muted-foreground">
                 We'll send a 6-digit verification code to confirm it's you.
               </p>
-            </div>
 
-            {stepError && (
-              <Error error={stepError} />
-            )}
+              {fieldErrors.email && <Error error={fieldErrors.email} />}
+            </div>
 
             <Button
               type="submit"
@@ -141,7 +145,7 @@ export function ForgotPasswordForm() {
         )}
 
         {step === 2 && (
-          <form onSubmit={handleResetSubmit} className="space-y-6">
+          <form onSubmit={handleResetSubmit} className="space-y-6" noValidate>
             <div className="space-y-2">
               <Label htmlFor="newPassword" className="text-base font-medium">
                 New Password
@@ -153,9 +157,7 @@ export function ForgotPasswordForm() {
                   name="newPassword"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  minLength={8}
                   className="h-12 rounded-xl text-base"
-                  required
                 />
 
                 <button
@@ -174,6 +176,8 @@ export function ForgotPasswordForm() {
               <p className="text-sm text-muted-foreground">
                 At least 8 characters with uppercase, numbers, and symbols.
               </p>
+              
+              {fieldErrors.newPassword && <Error error={fieldErrors.newPassword} />}
             </div>
 
             <div className="space-y-2">
@@ -190,13 +194,10 @@ export function ForgotPasswordForm() {
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 className="h-12 rounded-xl text-base"
-                required
               />
+              
+              {fieldErrors.confirmPassword && <Error error={fieldErrors.confirmPassword} />}
             </div>
-
-            {(error) && (
-              <Error error={error} />
-            )}
 
             <Button
               type="submit"

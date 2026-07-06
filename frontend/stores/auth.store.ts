@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AuthState } from "@/types/store";
 import { authService } from "@/services/auth.service";
-import { getErrorMessage } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/toast";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -53,7 +53,7 @@ export const useAuthStore = create<AuthState>()(
           
           await get().fetchMe();
         } catch (err: any) {
-          set({ error: getErrorMessage(err, "Invalid email or password.") });
+          set({ error: getErrorMessage(err, "Incorreect email or password.") });
           throw err;
         } finally {
           set({ isLoading: false });

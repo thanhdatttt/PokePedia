@@ -10,38 +10,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StepTransition } from "./StepTransition";
 import { Error } from "../util/Error";
+import { fieldErrorsFrom, loginSchema } from "@/lib/validations/auth.schema";
+import { showApiError } from "@/lib/toast";
 
 export function LoginForm() {
   const router = useRouter();
 
-  // global states
   const login = useAuthStore((state) => state.login);
   const isLoading = useAuthStore((state) => state.isLoading);
-  const error = useAuthStore((state) => state.error);
-  const clearError = useAuthStore((state) => state.clearError);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
-    clearError();
+    setFieldErrors({});
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const input = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    const result = loginSchema.safeParse(input);
+    if (!result.success) {
+      setFieldErrors(fieldErrorsFrom(result));
+      return;
+    }
 
     try {
-      await login(email, password);
+      await login(result.data.email, result.data.password);
       router.push("/");
-    } catch (err: any) {
-      console.log(err);
-      throw err;
+    } catch (err) {
+      showApiError(err, "Incorrect email or password.");
     }
   }
 
   return (
     <StepTransition stepKey={0}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         <div className="space-y-2">
           <Label htmlFor="email" className="text-base font-medium">
             Email
@@ -53,7 +60,6 @@ export function LoginForm() {
             type="email"
             placeholder="ash@pokepedia.com"
             className="h-12 rounded-xl text-base"
-            required
           />
         </div>
 
@@ -69,7 +75,6 @@ export function LoginForm() {
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               className="h-12 rounded-xl pr-12 text-base"
-              required
             />
 
             <button
@@ -84,11 +89,10 @@ export function LoginForm() {
               )}
             </button>
           </div>
+          {(fieldErrors.password || fieldErrors.email) && (
+            <Error error={fieldErrors.password || fieldErrors.email} />
+          )}
         </div>
-
-        {error && (
-          <Error error={error} />
-        )}
 
         <div className="text-right">
           <Link

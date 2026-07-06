@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/stores/auth.store";
+import { useAuthToasts } from "@/hooks/authToast";
 
 /**
  * Runs once on app load. Tries to silently restore a session using the
@@ -17,6 +18,8 @@ import { useAuthStore } from "@/stores/auth.store";
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const bootstrap = useAuthStore((state) => state.bootstrap);
   const ranOnce = useRef(false);
+
+  useAuthToasts();
 
   useEffect(() => {
     if (ranOnce.current) return;
