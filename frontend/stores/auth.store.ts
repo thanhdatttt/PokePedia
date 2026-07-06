@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AuthState } from "@/types/store";
 import { authService } from "@/services/auth.service";
-import { getErrorMessage } from "@/lib/toast";
+import { getErrorMessage, showApiError, showApiSuccess } from "@/lib/toast";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -12,8 +12,6 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       isInitialized: false,
-      error: null,
-      message: null,
 
       setAccessToken: (accessToken) => {
         set({ accessToken });
@@ -27,14 +25,6 @@ export const useAuthStore = create<AuthState>()(
         set({ isInitialized: value });
       },
 
-      clearError: () => {
-        set({ error: null });
-      },
-
-      clearMessage: () => {
-        set({ message: null });
-      },
-
       clearState: () => {
         set({ user: null, accessToken: null, isAuthenticated: false });
         localStorage.removeItem("pokepedia-auth");
@@ -43,17 +33,16 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email, password) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const { data, message } = await authService.login(email, password);
-          set({
-            accessToken: data.accessToken,
-            isAuthenticated: true,
-            message,
-          });
+          set({ accessToken: data.accessToken, isAuthenticated: true });
+          if (message) {
+            showApiSuccess(message);
+          }
           
           await get().fetchMe();
         } catch (err: any) {
-          set({ error: getErrorMessage(err, "Incorreect email or password.") });
+          showApiError(err, "Incorrect email or password.");
           throw err;
         } finally {
           set({ isLoading: false });
@@ -62,11 +51,13 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (username, email, password) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const { message } = await authService.register(username, email, password);
-          set({ message });
+          if (message) {
+            showApiSuccess(message);
+          }
         } catch (err: any) {
-          set({ error: getErrorMessage(err, "Can not create your account. Please try again.") });
+          showApiError(err, "Can not create your account. Please try again.");
           throw err;
         } finally {
           set({ isLoading: false });
@@ -75,11 +66,13 @@ export const useAuthStore = create<AuthState>()(
 
       resetPassword: async (email, newPassword) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const { message } = await authService.resetPassword(email, newPassword);
-          set({ message });
+          if (message) {
+            showApiSuccess(message);
+          }
         } catch (err: any) {
-          set({ error: getErrorMessage(err, "Can not reset your password. Please try again.") });
+          showApiError(err, "Can not reset your password. Please try again.");
           throw err;
         } finally {
           set({ isLoading: false });
@@ -88,11 +81,13 @@ export const useAuthStore = create<AuthState>()(
 
       sendOTP: async (email, type) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const { message } = await authService.sendOTP(email, type);
-          set({ message });
+          if (message) {
+            showApiSuccess(message);
+          }
         } catch (err: any) {
-          set({ error: getErrorMessage(err, "Can not send OTP right now. Please try again.") });
+          showApiError(err, "Can not send OTP right now. Please try again later.");
           throw err;
         } finally {
           set({ isLoading: false });
@@ -101,11 +96,13 @@ export const useAuthStore = create<AuthState>()(
 
       verifyOTP: async (email, otp, type) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const { message } = await authService.verifyOTP(email, otp, type);
-          set({ message });
+          if (message) {
+            showApiSuccess(message);
+          }
         } catch (err: any) {
-          set({ error: getErrorMessage(err, "Invalid or expired OTP.") });
+          showApiError(err, "Incorrect or expired OTP.");
           throw err;
         } finally {
           set({ isLoading: false });

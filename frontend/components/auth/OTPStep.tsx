@@ -35,7 +35,7 @@ export function OtpStep({
       await verifyOTP(email, result.data.otp, type);
       onVerified();
     } catch (err) {
-      showApiError(err, "Incorrect or expired OTP.");
+      
     } finally {
       setLoading(false);
     }

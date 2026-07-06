@@ -42,7 +42,7 @@ export function LoginForm() {
       await login(result.data.email, result.data.password);
       router.push("/");
     } catch (err) {
-      showApiError(err, "Incorrect email or password.");
+      
     }
   }
 

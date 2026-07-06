@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
       await sendOTP(result.data.email, "RESET");
       setStep(1);
     } catch (err) {
-      showApiError(err, "Failed to send OTP. Please try again.");
+      
     } finally {
       setStepLoading(false);
     }
@@ -69,7 +69,7 @@ export function ForgotPasswordForm() {
       await resetPassword(email, result.data.newPassword);
       setDone(true);
     } catch (err) {
-      showApiError(err, "Failed to reset your password. Please try again.");
+      
     }
   }
 
