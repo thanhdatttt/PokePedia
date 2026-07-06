@@ -10,3 +10,11 @@ export function getErrorMessage(err: any, fallback = "Something went wrong"): st
 export function showApiError(err: unknown, fallback?: string) {
   toast.error(getErrorMessage(err, fallback));
 }
+
+export function showApiSuccess(
+  source: { message?: string } | string,
+  fallback = "Success",
+) {
+  const message = typeof source === "string" ? source : source.message;
+  toast.success(message ?? fallback);
+}

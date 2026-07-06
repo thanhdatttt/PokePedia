@@ -46,7 +46,7 @@ export function RegisterForm() {
       await sendOTP(result.data.email, "REGISTER");
       setStep(1);
     } catch (err) {
-      showApiError(err, "Failed to send OTP. Please try again.");
+      
     } finally {
       setStepLoading(false);
     }
@@ -74,7 +74,7 @@ export function RegisterForm() {
       await register(result.data.username, email, result.data.password);
       router.push("/login");
     } catch (err) {
-      showApiError(err, "Failed to create your account. Please try again.");
+      
     }
   }
 

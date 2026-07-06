@@ -6,15 +6,11 @@ export interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: string | null;
-  message: string | null;
   isInitialized: boolean;
 
   setAccessToken: (accessToken: string) => void;
   setUser: (user: User) => void;
   setHydrated: (value: boolean) => void;
-  clearError: () => void;
-  clearMessage: () => void;
   clearState: () => void;
 
   login: (email: string, password: string) => Promise<void>;
