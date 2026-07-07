@@ -1,15 +1,33 @@
-import { Controller, Post, Query, Get } from '@nestjs/common';
+import { Controller, Post, Query, Get, Param } from '@nestjs/common';
 import { PokemonService } from './pokemon.service';
 import { SyncService } from './sync/sync.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { SyncPokemonQueryDto } from './dtos/syncQuery.dto';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { PokemonQueryDto } from './dtos/pokemonQuery.dto';
 
 @Controller('pokemon')
 export class PokemonController {
   constructor(
     private readonly pokemonService: PokemonService,
     private readonly syncService: SyncService,
-  ) {}
+  ) { }
+
+  // list
+  @Public()
+  @Get()
+  @ResponseMessage('Pokemon list retrieved successfully')
+  findAll(@Query() query: PokemonQueryDto) {
+    return this.pokemonService.getAll(query);
+  }
+
+  // detail
+  @Public()
+  @Get(':idOrSlug')
+  @ResponseMessage('Pokemon detail retrieved successfully')
+  getDetail(@Param('idOrSlug') idOrSlug: string) {
+    return this.pokemonService.getDetail(idOrSlug);
+  }
 
   // sync data
   @Public()
