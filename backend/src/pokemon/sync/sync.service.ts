@@ -7,6 +7,8 @@ import { SyncItemsService } from './sync-items.service';
 import { SyncSpeciesService } from './sync-species.service';
 import { SyncPokemonService } from './sync-pokemon.service';
 import { RedisService } from 'src/redis/redis.service';
+import { SyncMovesService } from './sync-moves.service';
+import { SyncPokemonMovesService } from './sync-pokemon-moves.service';
 
 export interface SyncOptions {
   limit?: number;
@@ -23,6 +25,8 @@ export class SyncService {
     private readonly syncStats: SyncStatsService,
     private readonly syncAbilities: SyncAbilitiesService,
     private readonly syncItems: SyncItemsService,
+    private readonly syncMoves: SyncMovesService,
+    private readonly syncPokemonMoves: SyncPokemonMovesService,
     private readonly syncSpecies: SyncSpeciesService,
     private readonly syncPokemon: SyncPokemonService,
     private readonly redisService: RedisService,
@@ -47,6 +51,9 @@ export class SyncService {
       await this.syncAbilities.run(options.limit);
       await this.syncItems.run(options.limit);
 
+      // Needs types
+      await this.syncMoves.run(options.limit);
+
       // Needs generations + items
       // Species also creates evolution chains (needs species + items to exist)
       await this.syncSpecies.run(options.limit);
@@ -56,6 +63,9 @@ export class SyncService {
 
       // reset redis cache evolution as new sync
       await this.redisService.delByPattern('evolution-chain:*');
+
+      // Needs pokemon + moves
+      await this.syncPokemonMoves.run(options.limit);
 
       const elapsed = ((Date.now() - start) / 1000).toFixed(1);
       this.logger.log(`  Sync complete in ${elapsed}s`);

@@ -189,9 +189,9 @@ export const evolutionChainNodesRelations = relations(evolutionChainNodes, ({ on
     relationName: 'node_children',
   }),
   // Condition FKs
-  item:         one(items, { fields: [evolutionChainNodes.itemId],       references: [items.id], relationName: 'use_item' }),
-  heldItem:     one(items, { fields: [evolutionChainNodes.heldItemId],   references: [items.id], relationName: 'held_item' }),
-  knownMove:    one(moves, { fields: [evolutionChainNodes.knownMoveId],  references: [moves.id] }),
+  item: one(items, { fields: [evolutionChainNodes.itemId], references: [items.id], relationName: 'use_item' }),
+  heldItem: one(items, { fields: [evolutionChainNodes.heldItemId], references: [items.id], relationName: 'held_item' }),
+  knownMove: one(moves, { fields: [evolutionChainNodes.knownMoveId], references: [moves.id] }),
   partySpecies: one(pokemonSpecies, {
     fields: [evolutionChainNodes.partySpeciesId],
     references: [pokemonSpecies.id],

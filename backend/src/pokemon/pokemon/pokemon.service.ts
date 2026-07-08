@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, desc, eq, ilike, inArray, or, sql, SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/database/database.service';
 import { RedisService } from 'src/redis/redis.service';
-import { PokemonQueryDto } from './dtos/pokemonQuery.dto';
+import { PokemonQueryDto } from '../dtos/pokemonQuery.dto';
 import { PaginatedResult } from 'src/common/interfaces/pagination.interface';
 import { abilities, evolutionChainNodes, generations, items, pokemon, pokemonAbilities, pokemonSpecies, pokemonStats, pokemonTypes, stats, types } from 'src/database/schema/pokemon';
 import { alias } from 'drizzle-orm/pg-core';
