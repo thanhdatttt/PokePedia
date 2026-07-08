@@ -1,14 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, desc, eq, ilike, inArray, or, sql, SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/database/database.service';
+import { RedisService } from 'src/redis/redis.service';
 import { PokemonQueryDto } from './dtos/pokemonQuery.dto';
 import { PaginatedResult } from 'src/common/interfaces/pagination.interface';
-import { abilities, evolutionChainNodes, generations, pokemon, pokemonAbilities, pokemonSpecies, pokemonStats, pokemonTypes, stats, types } from 'src/database/schema/pokemon';
-import { alias } from 'drizzle-orm/gel-core';
+import { abilities, evolutionChainNodes, generations, items, pokemon, pokemonAbilities, pokemonSpecies, pokemonStats, pokemonTypes, stats, types } from 'src/database/schema/pokemon';
+import { alias } from 'drizzle-orm/pg-core';
+import { EVOLUTION_CACHE_TTL } from 'src/common/constants/pokeapi.constant';
 
 @Injectable()
 export class PokemonService {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService, private readonly redisService: RedisService,) { }
 
   async getAll(query: PokemonQueryDto): Promise<PaginatedResult<any>> {
     const {
@@ -223,6 +225,8 @@ export class PokemonService {
         .where(eq(pokemon.speciesId, row.speciesId)),
     ]);
 
+    const evolutionChain = await this.getEvolutionChain(row.speciesId);
+
     const { speciesId, ...pokemonData } = row;
 
     return {
@@ -230,7 +234,112 @@ export class PokemonService {
       types: typeRows,
       stats: statRows,
       abilities: abilityRows,
+      evolutionChain,
       forms: siblingForms.filter((f) => f.id !== row.id),
     };
+  }
+
+  private async getEvolutionChain(speciesId: string) {
+    // check cache if not create new one
+    const cacheKey = `evolution-chain:species:${speciesId}`;
+    const cached = await this.redisService.get<ReturnType<typeof this.buildEvolutionTree>>(cacheKey);
+    if (cached !== null) {
+      return cached; // no need to query
+    }
+
+    // Which chain does this species belong to?
+    const [currentNode] = await this.db.db
+      .select({ chainId: evolutionChainNodes.chainId })
+      .from(evolutionChainNodes)
+      .where(eq(evolutionChainNodes.speciesId, speciesId))
+      .limit(1);
+    if (!currentNode) return null;
+
+    // Pull every node in that family, with species name/slug + condition data
+    const heldItems = alias(items, 'held_items');
+    const nodes = await this.db.db
+      .select({
+        nodeId: evolutionChainNodes.id,
+        parentNodeId: evolutionChainNodes.parentNodeId,
+        speciesId: evolutionChainNodes.speciesId,
+        speciesName: pokemonSpecies.name,
+        speciesSlug: pokemonSpecies.slug,
+        trigger: evolutionChainNodes.trigger,
+        minLevel: evolutionChainNodes.minLevel,
+        minHappiness: evolutionChainNodes.minHappiness,
+        timeOfDay: evolutionChainNodes.timeOfDay,
+        itemName: items.name,
+        heldItemName: heldItems.name,
+      })
+      .from(evolutionChainNodes)
+      .innerJoin(pokemonSpecies, eq(evolutionChainNodes.speciesId, pokemonSpecies.id))
+      .leftJoin(items, eq(evolutionChainNodes.itemId, items.id))
+      .leftJoin(heldItems, eq(evolutionChainNodes.heldItemId, heldItems.id))
+      .where(eq(evolutionChainNodes.chainId, currentNode.chainId));
+
+    // Default art per species
+    const speciesIds = nodes.map((n) => n.speciesId);
+    const arts = await this.db.db
+      .select({ speciesId: pokemon.speciesId, officalArtUrl: pokemon.officialArtUrl })
+      .from(pokemon)
+      .where(and(inArray(pokemon.speciesId, speciesIds), eq(pokemon.isDefault, true)));
+    const artBySpecies = new Map(arts.map((s) => [s.speciesId, s.officalArtUrl]));
+    const tree = this.buildEvolutionTree(nodes, artBySpecies);
+
+    await this.redisService.set(cacheKey, tree, EVOLUTION_CACHE_TTL);
+
+    return tree;
+  }
+
+  // Reconstructs a tree from a flat adjacency list (parentNodeId → nodeId)
+  private buildEvolutionTree(
+    nodes: {
+      nodeId: string;
+      parentNodeId: string | null;
+      speciesId: string;
+      speciesName: string;
+      speciesSlug: string;
+      trigger: string | null;
+      minLevel: number | null;
+      minHappiness: number | null;
+      timeOfDay: string | null;
+      itemName: string | null;
+      heldItemName: string | null;
+    }[],
+    artBySpecies: Map<string, string | null>,
+  ) {
+    type TreeNode = (typeof nodes)[number] & { children: TreeNode[] };
+    const byId = new Map<string, TreeNode>(
+      nodes.map((n) => [n.nodeId, { ...n, children: [] }]),
+    );
+
+    let root: TreeNode | null = null;
+    for (const node of byId.values()) {
+      if (node.parentNodeId && byId.has(node.parentNodeId)) {
+        byId.get(node.parentNodeId)!.children.push(node);
+      } else {
+        root = node; // parentNodeId === null → base stage of the family
+      }
+    }
+
+    const toResponse = (node: TreeNode): any => ({
+      speciesName: node.speciesName,
+      speciesSlug: node.speciesSlug,
+      officalArtUrl: artBySpecies.get(node.speciesId) ?? null,
+      // null on the root
+      evolutionDetail: node.parentNodeId
+        ? {
+          trigger: node.trigger,
+          minLevel: node.minLevel,
+          minHappiness: node.minHappiness,
+          timeOfDay: node.timeOfDay,
+          item: node.itemName,
+          heldItem: node.heldItemName,
+        }
+        : null,
+      evolvesTo: node.children.map(toResponse),
+    });
+
+    return root ? toResponse(root) : null;
   }
 }

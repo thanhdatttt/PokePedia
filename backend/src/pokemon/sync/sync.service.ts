@@ -6,9 +6,9 @@ import { SyncAbilitiesService } from './sync-abilities.service';
 import { SyncItemsService } from './sync-items.service';
 import { SyncSpeciesService } from './sync-species.service';
 import { SyncPokemonService } from './sync-pokemon.service';
+import { RedisService } from 'src/redis/redis.service';
 
 export interface SyncOptions {
-  /** the number of records fetched per resource. */
   limit?: number;
 }
 
@@ -25,7 +25,8 @@ export class SyncService {
     private readonly syncItems: SyncItemsService,
     private readonly syncSpecies: SyncSpeciesService,
     private readonly syncPokemon: SyncPokemonService,
-  ) {}
+    private readonly redisService: RedisService,
+  ) { }
 
   async syncAll(options: SyncOptions = {}): Promise<void> {
     if (this.running) {
@@ -52,6 +53,9 @@ export class SyncService {
 
       // Needs species + types + stats + abilities
       await this.syncPokemon.run(options.limit);
+
+      // reset redis cache evolution as new sync
+      await this.redisService.delByPattern('evolution-chain:*');
 
       const elapsed = ((Date.now() - start) / 1000).toFixed(1);
       this.logger.log(`  Sync complete in ${elapsed}s`);
