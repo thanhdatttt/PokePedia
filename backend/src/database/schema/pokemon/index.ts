@@ -11,3 +11,4 @@ export * from "./pokemon-stat.schema";
 export * from "./pokemon-ability.schema";
 export * from "./pokemon-move.schema";
 export * from "./evolution-chain.schema";
+export * from "./type-relation.schema";

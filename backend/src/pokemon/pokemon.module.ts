@@ -13,16 +13,21 @@ import { SyncPokemonService } from './sync/sync-pokemon.service';
 import { PokedexClientProvider } from './pokedex.provider';
 import { SyncMovesService } from './sync/sync-moves.service';
 import { SyncPokemonMovesService } from './sync/sync-pokemon-moves.service';
+import { SyncTypeRelationsService } from './sync/sync-type-relation.service';
+import { TypeController } from './type/type.controller';
+import { TypeService } from './type/type.service';
 
 @Module({
-  controllers: [PokemonController],
+  controllers: [PokemonController, TypeController],
   providers: [
     PokemonService,
     PokemonMoveService,
     PokedexClientProvider,
+    TypeService,
     SyncService,
     SyncGenerationsService,
     SyncTypesService,
+    SyncTypeRelationsService,
     SyncStatsService,
     SyncAbilitiesService,
     SyncMovesService,
