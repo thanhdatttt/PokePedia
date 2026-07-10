@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { orbitron } from "../layout";
+import { orbitron } from "@/lib/font";
 import { Undo2 } from "lucide-react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
