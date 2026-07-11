@@ -1,4 +1,6 @@
 import { User } from "./user";
+import { TypeChart, TypeEffectiveness } from "./pokemonType";
+
 
 // auth store
 export interface AuthState {
@@ -22,4 +24,28 @@ export interface AuthState {
   refresh: () => Promise<void>;
   bootstrap: () => Promise<void>;
   fetchMe: () => Promise<void>;
+}
+
+// type store
+export type ViewMode = "matrix" | "lookup";
+
+export interface TypeChartState {
+  // data
+  chart: TypeChart | null;
+  isLoading: boolean;
+  // ui state
+  viewMode: ViewMode;
+  selectedTypes: string[]; // 1-2 entries, used in "lookup" mode
+  hoveredAttacker: string | null;
+  hoveredDefender: string | null;
+
+  // derived (recomputed on demand, not stored reactively to keep this simple)
+  getEffectiveness: () => TypeEffectiveness | null;
+
+  // actions
+  fetchChart: () => Promise<void>;
+  setViewMode: (mode: ViewMode) => void;
+  toggleSelectedType: (name: string) => void;
+  clearSelectedTypes: () => void;
+  setHovered: (attacker: string | null, defender: string | null) => void;
 }

@@ -23,12 +23,12 @@ function unwrapEnvelope(res: AxiosResponse) {
   return res;
 }
 
-export const authClient = axios.create({
-  baseURL: `${config.NEXT_PUBLIC_API_URL}/auth`,
+export const publicApi = axios.create({
+  baseURL: `${config.NEXT_PUBLIC_API_URL}`,
   withCredentials: true,
 });
 
-authClient.interceptors.response.use(unwrapEnvelope);
+publicApi.interceptors.response.use(unwrapEnvelope);
 
 export const api = axios.create({
   baseURL: config.NEXT_PUBLIC_API_URL,
@@ -53,6 +53,11 @@ api.interceptors.response.use(unwrapEnvelope, async (error: AxiosError) => {
 
   // check token is expired or invalid and refresh
   if (isUnauthorized && originalRequest && !originalRequest._retry) {
+    // if refresh api fails, reject the request
+    if (originalRequest.url === "/auth/refresh") {
+      return Promise.reject(error);
+    }
+
     originalRequest._retry = true; // only ever retry a given request once
 
     try {

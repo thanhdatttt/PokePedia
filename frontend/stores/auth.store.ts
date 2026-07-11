@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { AuthState } from "@/types/store";
 import { authService } from "@/services/auth.service";
-import { getErrorMessage, showApiError, showApiSuccess } from "@/lib/toast";
+import { showApiError, showApiSuccess } from "@/lib/toast";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>()(
             showApiSuccess(message);
           }
           
-          await get().fetchMe();
+          // await get().fetchMe();
         } catch (err: any) {
           showApiError(err, "Incorrect email or password.");
           throw err;
