@@ -26,7 +26,7 @@ export const useTypeStore = create<TypeChartState>((set, get) => ({
       const { data } = await pokemonTypeService.getChart();
       set({ chart: data });
     } catch (err: any) {
-      showApiError(err, "Failed to load type chart");
+      showApiError(err, "Failed to load chart");
     } finally {
       set({ isLoading: false });
     }

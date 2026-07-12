@@ -3,7 +3,7 @@ import { publicApi } from "@/lib/api";
 export const pokemonTypeService = {
   getAllTypes: async () => {
     try {
-      const res = await publicApi.get("/pokemon/types");
+      const res = await publicApi.get("/types");
       return { data: res.data, message: res.message };
     } catch (err: any) {
       throw err;
@@ -12,7 +12,7 @@ export const pokemonTypeService = {
 
   getChart: async () => {
     try {
-      const res = await publicApi.get("/pokemon/types/chart");
+      const res = await publicApi.get("/types/chart");
       return { data: res.data, message: res.message };
     } catch (err: any) {
       throw err;
@@ -21,7 +21,7 @@ export const pokemonTypeService = {
 
   getByName: async (name: string) => {
     try {
-      const res = await publicApi.get(`/pokemon/types/${name}`);
+      const res = await publicApi.get(`/types/${name}`);
       return { data: res.data, message: res.message };
     } catch (err: any) {
       throw err;

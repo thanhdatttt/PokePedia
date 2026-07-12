@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, ne } from 'drizzle-orm';
 import { alias } from "drizzle-orm/pg-core";
 import { TYPE_CHART_CACHE_TTL } from "src/common/constants/pokeapi.constant";
 import { DatabaseService } from "src/database/database.service";
@@ -22,14 +22,14 @@ export interface TypeDetail {
   name: string;
   color: string;
   offensive: {
-    superEffectiveAgainst: string[];   
+    superEffectiveAgainst: string[];
     notVeryEffectiveAgainst: string[];
-    noEffectAgainst: string[];         
+    noEffectAgainst: string[];
   };
   defensive: {
-    weakTo: string[];       
-    resistantTo: string[];  
-    immuneTo: string[]; 
+    weakTo: string[];
+    resistantTo: string[];
+    immuneTo: string[];
   };
 }
 
@@ -38,12 +38,13 @@ export class TypeService {
   constructor(
     private readonly db: DatabaseService,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   async getAllTypes() {
     return this.db.db
       .select({ name: types.name, color: types.color })
       .from(types)
+      .where(ne(types.name, 'stellar'))
       .orderBy(asc(types.pokeApiId));
   }
 
@@ -116,37 +117,37 @@ export class TypeService {
   }
 
   async getByName(name: string): Promise<TypeDetail> {
-  const { types: allTypes, chart } = await this.getChart();
+    const { types: allTypes, chart } = await this.getChart();
 
-  const target = allTypes.find((t) => t.name === name);
-  if (!target || !chart[name]) {
-    throw new NotFoundException(`Type "${name}" not found`);
+    const target = allTypes.find((t) => t.name === name);
+    if (!target || !chart[name]) {
+      throw new NotFoundException(`Type "${name}" not found`);
+    }
+
+    const offensive = {
+      superEffectiveAgainst: [] as string[],
+      notVeryEffectiveAgainst: [] as string[],
+      noEffectAgainst: [] as string[],
+    };
+    for (const defender of allTypes) {
+      const multiplier = chart[name][defender.name];
+      if (multiplier === 2) offensive.superEffectiveAgainst.push(defender.name);
+      else if (multiplier === 0.5) offensive.notVeryEffectiveAgainst.push(defender.name);
+      else if (multiplier === 0) offensive.noEffectAgainst.push(defender.name);
+    }
+
+    const defensive = {
+      weakTo: [] as string[],
+      resistantTo: [] as string[],
+      immuneTo: [] as string[],
+    };
+    for (const attacker of allTypes) {
+      const multiplier = chart[attacker.name][name];
+      if (multiplier === 2) defensive.weakTo.push(attacker.name);
+      else if (multiplier === 0.5) defensive.resistantTo.push(attacker.name);
+      else if (multiplier === 0) defensive.immuneTo.push(attacker.name);
+    }
+
+    return { name: target.name, color: target.color, offensive, defensive };
   }
-
-  const offensive = {
-    superEffectiveAgainst: [] as string[],
-    notVeryEffectiveAgainst: [] as string[],
-    noEffectAgainst: [] as string[],
-  };
-  for (const defender of allTypes) {
-    const multiplier = chart[name][defender.name];
-    if (multiplier === 2) offensive.superEffectiveAgainst.push(defender.name);
-    else if (multiplier === 0.5) offensive.notVeryEffectiveAgainst.push(defender.name);
-    else if (multiplier === 0) offensive.noEffectAgainst.push(defender.name);
-  }
-
-  const defensive = {
-    weakTo: [] as string[],
-    resistantTo: [] as string[],
-    immuneTo: [] as string[],
-  };
-  for (const attacker of allTypes) {
-    const multiplier = chart[attacker.name][name];
-    if (multiplier === 2) defensive.weakTo.push(attacker.name);
-    else if (multiplier === 0.5) defensive.resistantTo.push(attacker.name);
-    else if (multiplier === 0) defensive.immuneTo.push(attacker.name);
-  }
-
-  return { name: target.name, color: target.color, offensive, defensive };
-}
 }
