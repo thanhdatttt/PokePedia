@@ -19,9 +19,9 @@ export function TypeBadge({ type, selected, onClick, size = "md" }: TypeBadgePro
       onClick={onClick}
       disabled={!isInteractive}
       className={cn(
-        "w-36 inline-flex items-center gap-1.5 rounded-full font-bold capitalize transition-all",
-        size === "sm" ? "px-2 py-0.5 text-md" : "px-3 py-1.5 text-md",
-        isInteractive && "cursor-pointer hover:scale-105 active:scale-95",
+        "inline-flex w-32 items-center justify-center gap-1.5 rounded-full font-bold capitalize shadow-sm transition-all",
+        size === "sm" ? "px-2 py-0.5 text-lg" : "px-3 py-1.5 text-lg",
+        isInteractive && "cursor-pointer hover:scale-105 hover:shadow-md active:scale-95",
         !isInteractive && "cursor-default",
         selected && "ring-2 ring-offset-2 ring-offset-background",
       )}
@@ -31,7 +31,7 @@ export function TypeBadge({ type, selected, onClick, size = "md" }: TypeBadgePro
         "--tw-ring-color": type.color,
       } as React.CSSProperties}
     >
-      <img src={Icon} alt={type.name} className={`${size === "sm" ? "w-10 h-12" : "w-14 h-12"}`} />
+      <img src={Icon} alt={type.name} className={size === "sm" ? "size-4" : "size-5"} />
       {type.name}
     </button>
   );

@@ -69,6 +69,22 @@ export function multiplierBucket(
   return "neutral";
 }
 
+export type MultiplierTone = "super" | "notVery" | "none" | "neutral";
+
+export function multiplierTone(multiplier: number): MultiplierTone {
+  if (multiplier === 0) return "none";
+  if (multiplier > 1) return "super";
+  if (multiplier < 1) return "notVery";
+  return "neutral";
+}
+
+export const MULTIPLIER_TONE_CLASSES: Record<MultiplierTone, string> = {
+  super: "bg-(--chart-3)/15 text-(--chart-3)",
+  notVery: "bg-destructive/15 text-destructive",
+  none: "bg-foreground/85 text-background",
+  neutral: "bg-muted text-muted-foreground",
+};
+
 export function sortTypesAlphabetically(types: PokemonType[]): PokemonType[] {
   return [...types].sort((a, b) => a.name.localeCompare(b.name));
 }
