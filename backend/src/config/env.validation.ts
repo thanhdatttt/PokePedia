@@ -15,9 +15,13 @@ export const envValidationSchema = Joi.object({
   REDIS_PASSWORD: Joi.string().optional().allow(''),
  
   // Email
-  MAIL_HOST: Joi.string().optional(),
-  MAIL_PORT: Joi.number().default(587),
-  MAIL_USER: Joi.string().optional(),
-  MAIL_PASS: Joi.string().optional(),
-  MAIL_FROM: Joi.string().optional(),
+  // MAIL_HOST: Joi.string().optional(),
+  // MAIL_PORT: Joi.number().default(587),
+  // MAIL_USER: Joi.string().optional(),
+  // MAIL_PASS: Joi.string().optional(),
+  // MAIL_FROM: Joi.string().optional(),
+  MAILJET_API_KEY: Joi.string().required(),
+  MAILJET_SECRET_KEY: Joi.string().required(),
+  MAIL_FROM_EMAIL: Joi.string().required(),
+  MAIL_FROM_NAME: Joi.string().required(),
 });

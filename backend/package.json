@@ -46,7 +46,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
     "joi": "^18.2.1",
-    "nodemailer": "^8.0.7",
+    "node-mailjet": "^6.0.11",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.21.0",
