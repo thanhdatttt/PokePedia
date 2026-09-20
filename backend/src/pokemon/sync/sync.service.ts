@@ -9,6 +9,7 @@ import { SyncPokemonService } from './sync-pokemon.service';
 import { RedisService } from 'src/redis/redis.service';
 import { SyncMovesService } from './sync-moves.service';
 import { SyncPokemonMovesService } from './sync-pokemon-moves.service';
+import { SyncTypeRelationsService } from './sync-type-relation.service';
 
 export interface SyncOptions {
   limit?: number;
@@ -22,6 +23,7 @@ export class SyncService {
   constructor(
     private readonly syncGenerations: SyncGenerationsService,
     private readonly syncTypes: SyncTypesService,
+    private readonly syncTypeRelations: SyncTypeRelationsService,
     private readonly syncStats: SyncStatsService,
     private readonly syncAbilities: SyncAbilitiesService,
     private readonly syncItems: SyncItemsService,
@@ -47,6 +49,7 @@ export class SyncService {
       // No dependencies 
       await this.syncGenerations.run();
       await this.syncTypes.run();
+      await this.syncTypeRelations.run();
       await this.syncStats.run();
       await this.syncAbilities.run(options.limit);
       await this.syncItems.run(options.limit);

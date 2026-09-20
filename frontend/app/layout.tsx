@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -17,15 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className="h-full antialiased"
-    >
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          {children}
+          <TooltipProvider>
+            {children}
+            <Toaster richColors position="top-center" duration={1500} closeButton />
+          </TooltipProvider>
         </AuthProvider>
-        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

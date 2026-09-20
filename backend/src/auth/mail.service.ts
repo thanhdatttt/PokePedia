@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import Mailjet from 'node-mailjet';
 
 @Injectable()
 export class MailService {
@@ -22,40 +22,57 @@ export class MailService {
         : 'Use the following OTP code to reset your password.',
     });
 
-    const mailHost = this.configService.get<string>('MAIL_HOST');
-    if (!mailHost) {
-      // test mode
-      this.logger.warn(
-        'MAIL_HOST not set — printing OTP to console (dev only)',
+    // Mailjet service to send mail
+    const apiKey = this.configService.get<string>('MAILJET_API_KEY') ?? '';
+    const secretKey = this.configService.get<string>('MAILJET_SECRET_KEY') ?? '';
+    const fromEmail = this.configService.get<string>('MAIL_FROM_EMAIL') ?? 'noreply@pokepoedia.com';
+    const fromName = this.configService.get<string>('MAIL_FROM_NAME') ?? 'PokePedia';
+    const mailjet = new Mailjet({
+      apiKey: apiKey,
+      apiSecret: secretKey,
+    })
+
+     try {
+      await mailjet
+        .post('send', {
+          version: 'v3.1',
+        })
+        .request({
+          Messages: [
+            {
+              From: {
+                Email: fromEmail,
+                Name: fromName,
+              },
+
+              To: [
+                {
+                  Email: to,
+                },
+              ],
+
+              Subject: subject,
+
+              TextPart: text,
+
+              HTMLPart: html,
+            },
+          ],
+        });
+
+      this.logger.log(
+        `Email from ${fromEmail} sent to ${to}: ${subject} : OTP <${otp}>`,
       );
-      this.logger.log(`OTP for <${to}> [${type}]: ${otp}`);
-      return;
+    } catch (error) {
+      this.logger.error(
+        `Failed to send email to ${to}`,
+        error instanceof Error
+          ? error.stack
+          : String(error),
+      );
+
+      throw error;
     }
-
-    const transporter = nodemailer.createTransport({
-      host: mailHost,
-      port: this.configService.get<number>('MAIL_PORT'),
-      secure: false,
-      auth: {
-        user: this.configService.get<string>('MAIL_USER'),
-        pass: this.configService.get<string>('MAIL_PASS'),
-      },
-    });
-
-    await transporter.sendMail({
-      from: {
-        name: 'PokePedia',
-        address:
-          this.configService.get<string>('MAIL_FROM') ||
-          'noreply@pokepedia.com',
-      },
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    this.logger.log(`Email sent to ${to}: ${subject}`);
   }
 
   private generateOtpTemplate({
