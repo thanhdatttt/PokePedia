@@ -1,177 +1,133 @@
-PROJECT ARCHITECTURE
+POKEPEDIA ARCHITECTURE
 
-                ┌─────────────────┐
-                │     Client      │
-                │ Next.js Frontend│
-                └────────┬────────┘
-                         │ HTTPS
-                         ▼
-                ┌─────────────────┐
-                │     Vercel      │
-                │ Frontend Hosting│
-                └────────┬────────┘
-                         │ API Calls
-                         ▼
-        ┌────────────────────────────────┐
-        │        NestJS Backend          │
-        │  Authentication + Business     │
-        │            Logic               │
-        └──────┬─────────┬───────────────┘
-               │         │
-               │         │
-               ▼         ▼
-        ┌──────────┐  ┌──────────┐
-        │ Postgres │  │  Redis   │
-        │ Supabase │  │  Cache   │
-        └──────────┘  └──────────┘
-               │
-               ▼
-        ┌──────────────┐
-        │ RabbitMQ     │
-        │ Async Events │
-        └──────┬───────┘
-               │
-               ▼
-        ┌──────────────────┐
-        │ Background Jobs  │
-        │ Notifications AI │
-        └──────────────────┘
-               │
-               ▼
-        ┌──────────────────┐
-        │ External APIs    │
-        │ PokéAPI GeminiAI │
-        └──────────────────┘
+This document describes the checked-in runtime. See PROJECT_STATE.md for API details, gaps, and the recommended continuation order.
 
+1. Runtime topology
 
-PROJECT STRUCTURE
+Browser
+  |
+  | Next.js App Router pages and client components
+  | Axios calls to NEXT_PUBLIC_API_URL
+  v
+NestJS API (`/api` prefix)
+  |
+  +-- PostgreSQL
+  |     Drizzle ORM over node-postgres
+  |     users, refresh tokens, Pokémon reference/form/join data
+  |
+  +-- Redis
+  |     OTPs and email/reset verification flags
+  |     cached type matrix and evolution trees
+  |
+  +-- Mailjet
+  |     registration and password-reset OTP messages
+  |
+  `-- PokéAPI
+        source for explicit synchronization jobs
 
-1. Backend:
+RabbitMQ, background workers, AI services, and deployment-specific infrastructure are not implemented.
+
+2. Backend layers
+
+- Bootstrap (`src/main.ts`): validation, CORS, global JWT guard, response interceptor, exception filter, `/api` prefix.
+- Controllers: translate HTTP path/body/query parameters into service calls.
+- Services: authentication rules, read queries, type calculations, and synchronization orchestration.
+- Infrastructure: global DatabaseService and RedisService plus Mailjet/PokéAPI adapters.
+- Drizzle schema: table definitions and relations under `src/database/schema`.
+- Common layer: response metadata, public-route metadata, response envelopes, hashing, and OTP generation.
+
+All routes are protected by default. `@Public()` is an explicit bypass. Public read routes include Pokémon and type data. The current public sync trigger is a known security gap.
+
+3. Frontend layers
+
+- `app/`: layouts and routes using the Next.js App Router.
+- `components/`: auth workflows, type chart, navbar, and shadcn UI primitives.
+- `services/`: backend endpoint adapters.
+- `stores/`: Zustand state/actions for authentication and the type chart.
+- `lib/api.ts`: Axios clients, bearer injection, refresh retry, and response-envelope unwrapping.
+- `lib/validations/`: Zod form contracts.
+- `types/`: shared client-side API/state shapes.
+
+There is currently no server-side data-fetching layer and no active TanStack Query integration.
+
+4. Main flows
+
+Registration:
+
+Next.js form -> send OTP -> Mailjet + Redis -> verify OTP -> Redis verification flag -> register -> bcrypt + PostgreSQL.
+
+Authentication:
+
+Login -> backend returns access and refresh tokens -> frontend stores access token in memory -> bearer token on authenticated Axios requests.
+
+The reload/refresh/logout path is incomplete because the client assumes an HTTP-only refresh cookie while the backend requires a refresh token in the JSON request body.
+
+Pokémon reads:
+
+Client -> public Nest controller -> Drizzle query -> PostgreSQL -> standard response envelope -> Axios unwraps `data`.
+
+Type chart:
+
+Controller -> TypeService -> Redis lookup -> PostgreSQL relation exceptions -> expand neutral 1x cells -> cache for 24 hours. The frontend uses the matrix directly and calculates combined one/two-type defense in the browser.
+
+Synchronization:
+
+Public HTTP trigger -> in-process fire-and-forget SyncService -> sequential PokéAPI stages -> Drizzle upserts/deletes/inserts -> partial cache invalidation. The running flag is process-local and is not durable.
+
+5. Actual repository structure
 
 backend/
-│
-├── drizzle/
-│   ├── migrations/
-│   └── seed/
-│
-├── src/
-│   │
-│   ├── main.ts
-│   ├── app.module.ts
-│   │
-│   ├── common/
-│   │   ├── decorators/
-│   │   ├── guards/
-│   │   ├── interceptors/
-│   │   ├── filters/
-│   │   ├── pipes/
-│   │   ├── constants/
-│   │   └── utils/
-│   │
-│   ├── config/
-│   │   ├── configuration.ts
-│   │   ├── env.validation.ts
-│   │   └── database.config.ts
-│   │
-│   ├── database/
-│   │   ├── schema/
-│   │   ├── database.service.ts
-│   │   └── database.module.ts
-│   │
-│   ├── auth/
-│   │   ├── dto/
-│   │   ├── guards/
-│   │   ├── strategies/
-│   │   ├── auth.controller.ts
-│   │   ├── auth.service.ts
-│   │   ├── auth.module.ts
-│   │   └── jwt.service.ts
-│   │
-│   ├── users/
-│   │
-│   ├── pokemon/
-│   │
-│   ├── teams/
-│   │
-│   ├── favorites/
-│   │
-│   ├── ai/
-│   │
-│   ├── reports/
-│   │
-│   ├── redis/
-│   │
-│   ├── queue/
-│   │
-│   └── integrations/
-│       └── pokeapi/
-│
-├── test/
-│
-├── .env
-├── docker-compose.yml
-├── package.json
-├── tsconfig.json
-└── nest-cli.json
-
-
-2. frontend
+  drizzle/migrations/              incomplete migration history
+  src/
+    main.ts
+    app.module.ts
+    auth/
+    common/
+    config/
+    database/
+      database.module.ts
+      database.service.ts
+      schema/
+        auth.schema.ts
+        pokemon/
+    pokemon/
+      dtos/
+      pokemon/
+      sync/
+      type/
+      pokemon.controller.ts
+      pokemon.module.ts
+    redis/
+  test/
 
 frontend/
-├── public/
-│
-├── src/
-│   ├── app/
-│   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   │
-│   │   ├── pokemon/
-│   │   │   ├── [id]/
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── teams/
-│   │   ├── favorites/
-│   │   ├── profile/
-│   │   ├── admin/
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   │
-│   ├── components/
-│   │   ├── ui/
-│   │   ├── common/
-│   │   ├── pokemon/
-│   │   ├── team/
-│   │   ├── auth/
-│   │   └── layout/
-│   │
-│   ├── lib/
-│   │   ├── axios.ts
-│   │   ├── query-client.ts
-│   │   ├── utils.ts
-│   │   └── auth.ts
-│   │
-│   ├── hooks/
-│   │
-│   ├── services/
-│   │   ├── auth.service.ts
-│   │   ├── pokemon.service.ts
-│   │   ├── team.service.ts
-│   │   └── user.service.ts
-│   │
-│   ├── store/
-│   │   ├── auth.store.ts
-│   │   └── theme.store.ts
-│   │
-│   ├── types/
-│   │
-│   ├── schemas/
-│   │
-│   ├── constants/
-│   │
-│   └── middleware.ts
-│
-├── .env.local
-├── tailwind.config.ts
-├── components.json
-└── next.config.ts
+  app/
+    (auth)/
+      login/
+      register/
+      forgot-password/
+    (main)/
+      types/chart/
+      page.tsx
+    layout.tsx
+    globals.css
+  components/
+    auth/
+    layout/
+    typeChart/
+    ui/
+  lib/
+  public/
+  services/
+  stores/
+  types/
+
+6. Architectural invariants
+
+- Keep the `/api` prefix and response envelope synchronized with the Axios unwrapping layer.
+- Make route access explicit; writes and operational actions must not accidentally be public.
+- Keep species-level data separate from Pokémon form-level data.
+- Preserve sync dependency order and make each stage idempotent.
+- Generate and verify migrations whenever Drizzle schema changes.
+- Keep access-token and refresh-token design consistent across browser and API.
+- Do not introduce RabbitMQ, AI, or deployment services in docs until an implementation is checked in.

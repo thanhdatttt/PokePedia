@@ -1,30 +1,52 @@
+POKEPEDIA TECH STACK
+
+This list describes the checked-in implementation. "Installed but unused" is not the same as an implemented architecture choice.
+
 1. Frontend
 
-Next.js
-TypeScript
-TailwindCSS
-shadcn/ui (UI library)
-Zustand (State management)
-TanStack Query (Data fetching)
+- Next.js 16 App Router
+- React 19
+- TypeScript 5 in strict mode
+- Tailwind CSS 4
+- shadcn/Radix UI primitives and Lucide icons
+- Zustand 5 for client state
+- Axios for HTTP requests
+- Zod 4 for browser environment and form validation
+- React Hook Form packages are installed, but current auth forms use native FormData and local state.
+- TanStack Query is installed but currently unused.
+- next-themes is installed but currently unused; the navbar toggle does not apply a theme.
 
 2. Backend
 
-Node.js
-TypeScript
-Nest.js
-Prisma (ORM)
-PostgreSQL
-Redis (Caching)
-Zod (Validation)
-RabbitMQ (Message broker)
+- Node.js and TypeScript
+- NestJS 11
+- PostgreSQL through `pg`
+- Drizzle ORM and Drizzle Kit (not Prisma)
+- Redis through ioredis
+- Passport JWT and `@nestjs/jwt`
+- class-validator/class-transformer for request DTOs
+- Joi for backend environment validation
+- bcrypt for passwords and refresh-token hashes
+- Mailjet for OTP delivery
+- pokedex-promise-v2 as the PokéAPI client
+- Jest/Supertest tooling, with only starter-level coverage today
 
-3. Deployment
+3. External services currently integrated
 
-Vercel
-Render
-Supabase
+- PokéAPI: source for synchronized Pokémon/reference data.
+- Mailjet: sends registration and password-reset OTP email.
+- PostgreSQL: required application database; provider is not fixed by code.
+- Redis: required for OTP flows and caches; local Compose service is included.
 
-4. APIs
+4. Not implemented despite earlier plans
 
-PokeAPI
-GeminiAPI
+- Prisma
+- RabbitMQ or another durable job queue
+- Gemini or another AI provider
+- Google OAuth
+- Vercel/Render/Supabase deployment configuration
+- CI/CD pipeline
+
+5. Project layout and commands
+
+There is no root package workspace. `backend/` and `frontend/` each have their own `package.json` and lockfile. Run installation, lint, typecheck, build, and test commands inside the relevant directory.

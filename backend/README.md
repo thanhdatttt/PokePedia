@@ -1,81 +1,88 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# PokePedia backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-## Description
+NestJS 11 API for authentication, Pokémon data synchronization/read APIs, and type effectiveness.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Read [../docs/PROJECT_STATE.md](../docs/PROJECT_STATE.md) before changing contracts or schema. It records current integration gaps and continuation priorities.
 
-## Project setup
+## Requirements
 
-```bash
-$ npm install
+- Node.js/npm compatible with the checked-in lockfile
+- PostgreSQL
+- Redis (a local Compose service is included)
+- Mailjet credentials for OTP delivery
+- network access to PokéAPI for synchronization
+
+## Environment
+
+Create `backend/.env` locally. It is ignored by Git.
+
+```dotenv
+PORT=3001
+DATABASE_URL=postgresql://...
+CLIENT_URL=http://localhost:3000
+
+JWT_ACCESS_SECRET=...
+JWT_REFRESH_SECRET=...
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+MAILJET_API_KEY=...
+MAILJET_SECRET_KEY=...
+MAIL_FROM_EMAIL=...
+MAIL_FROM_NAME=PokePedia
 ```
 
-## Compile and run the project
+All listed values except `PORT`, Redis host/port/password defaults, are validated at startup. Use strong independent JWT secrets.
+
+## Install and run
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+docker compose up -d redis
+npm run start:dev
 ```
 
-## Run tests
+All runtime routes are prefixed with `/api`. The backend defaults to port 3000, which conflicts with the frontend default, so local development should normally use `PORT=3001`.
+
+## Database commands
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run db:generate
+npm run db:migrate
+npm run db:push
 ```
 
-## Deployment
+Warning: the checked-in migrations currently cover only an early authentication schema and do not create the current Pokémon tables. See [../docs/DatabaseDesign.txt](../docs/DatabaseDesign.txt) before using migration commands on shared data. A clean-database migration baseline is a current blocker.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## API behavior
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Global DTO validation strips nothing silently: unknown fields are rejected.
+- All routes require bearer JWT authentication unless decorated with `@Public()`.
+- Success and error responses use the shared envelopes documented in `src/common/interfaces/api-response.interface.ts`.
+- CORS allows `CLIENT_URL` with credentials.
+
+The complete endpoint inventory is in [../docs/PROJECT_STATE.md](../docs/PROJECT_STATE.md).
+
+## Synchronizing PokéAPI data
+
+```text
+POST /api/pokemon/sync?limit=20
+GET  /api/pokemon/sync/status
+```
+
+`limit` is intended for development. Without it, sync requests the full configured datasets. The trigger responds immediately and work continues inside the API process.
+
+Current warning: the trigger is public, status is protected, execution is not durable, and evolution-node idempotency needs repair. Do not expose this endpoint publicly.
+
+## Verification commands
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm exec -- tsc --noEmit
+npm run test
+npm run test:e2e
+npm run test:cov
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+`npm run lint` includes `--fix` and mutates files. Use it only when edits are intended. The existing e2e test is still the generated starter test and does not install the global runtime configuration from `main.ts`.

@@ -1,49 +1,85 @@
-PokeDex AI platform
+POKEPEDIA PRODUCT REQUIREMENTS AND STATUS
 
-Core features
+Status legend:
+- IMPLEMENTED: backend and intended current UI/API exist.
+- PARTIAL: meaningful code exists, but the end-to-end feature is incomplete.
+- PLANNED: no working product implementation exists yet.
 
-1. Authentication
-- Sign up
-- Login
-- JWT auth
-- OAuth Google (optional)
-- Auth middleware
+For engineering details and known blockers, read PROJECT_STATE.md.
 
-2. Pokemon search
-- Search by name
-- Search by type
-- Search by generation
-- Pagination
-- Infinite scroll
+1. Authentication — PARTIAL
 
-3. Detail pokemon page
-- Stats
-- Abilities
-- Types
-- Moves
-- Evolution chain
-- Weakness/resistance
+- IMPLEMENTED: email OTP for registration.
+- IMPLEMENTED: account registration with unique email/username and strong password.
+- IMPLEMENTED: email/password login and JWT token-pair issuance.
+- IMPLEMENTED: refresh-token hashing, rotation, logout revocation, and password-reset revocation in the backend.
+- IMPLEMENTED: forgot-password OTP and reset UI/backend flow.
+- PARTIAL: frontend token refresh and logout do not match the backend request-body token contract.
+- PLANNED: current-user endpoint, protected frontend routes, navbar integration, role-based authorization, OAuth, rate limiting.
 
-4. Favorite system 
-- Save Pokémon
-- Remove favorites
+2. Pokémon data ingestion — IMPLEMENTED WITH HARDENING NEEDED
 
-5. Team Builder
-- User create team and edit: max 6 Pokémon
-- Save Team
+- Synchronize generations, types, type relations, stats, abilities, items, moves, species, evolution chains, forms, and learnsets from PokéAPI.
+- Support development sync with a query limit.
+- Cache evolution trees and the type chart in Redis.
+- Remaining: protect/administer the sync endpoint, make repeated evolution sync idempotent, add durable progress/error reporting, and complete cache invalidation.
 
-6. Admin Dashboard
-- Manage:
-    + Users
-    + Reports
+3. Pokémon discovery — BACKEND IMPLEMENTED, FRONTEND PLANNED
 
-Future implementation:
-1. AI analyzer
-- Team strengths
-- Weaknesses
-- Suggested replacements
+- IMPLEMENTED API: search by species name or form slug.
+- IMPLEMENTED API: filter by type, generation, and legendary status.
+- IMPLEMENTED API: pagination and sorting.
+- PLANNED UI: Pokédex grid/list, filters, pagination or infinite scrolling, empty/loading/error states.
 
-2. Sharing and Social
-- Share team
-- Clone team
-- Rating system
+4. Pokémon detail — BACKEND IMPLEMENTED, FRONTEND PLANNED
+
+- IMPLEMENTED API: identity, artwork, physical attributes, species metadata, types, base stats, abilities, sibling forms, and evolution tree.
+- IMPLEMENTED API: paginated move list with search, learning method, version group, and sorting.
+- IMPLEMENTED SUPPORT: type-effectiveness matrix can calculate weakness/resistance for one or two types.
+- PLANNED UI: detail page, moves presentation, evolution visualization, and weakness/resistance section.
+
+5. Type chart — IMPLEMENTED
+
+- Responsive full attack-versus-defense matrix.
+- Single- and dual-type defensive calculator.
+- Type list and single-type relationship endpoints.
+- Remaining: fix the navbar route from `/types` to `/types/chart` or add an index route.
+
+6. Favorites — PLANNED
+
+- Save/remove Pokémon for an authenticated user.
+- List the user's favorites.
+- Requires new database tables, protected APIs, and UI.
+
+7. Team builder — PLANNED
+
+- Create, rename, edit, and delete user-owned teams.
+- Maximum six Pokémon per team.
+- Persist members and order.
+- Show combined type strengths and weaknesses.
+
+8. Administration — PLANNED
+
+- Role-protected user management.
+- Data-sync controls and job status.
+- Report management/audit trail.
+
+9. AI analyzer — FUTURE
+
+- Analyze team strengths, weaknesses, coverage, and suggested replacements.
+- Must be built after teams and stable Pokémon data contracts.
+
+10. Sharing and social — FUTURE
+
+- Share and clone teams.
+- Rating system.
+- Ownership, visibility, moderation, and abuse requirements must be designed first.
+
+NON-FUNCTIONAL REQUIREMENTS
+
+- Never expose or log credentials, OTPs, JWT secrets, or refresh tokens.
+- All private writes must validate ownership and authentication.
+- Operational endpoints such as sync must require an admin role.
+- Database migrations must reproduce the full schema on an empty PostgreSQL database.
+- Sync must be safe to repeat without duplicate rows.
+- New vertical slices require tests for success, validation, authorization, and failure paths.

@@ -1,12 +1,11 @@
 erDiagram
-
     users {
         UUID id PK
         VARCHAR username UK
         VARCHAR email UK
-        TEXT password_hash
-        TEXT avatar_url
-        VARCHAR role
+        VARCHAR password_hash
+        VARCHAR avatar_url
+        user_role role
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -14,258 +13,187 @@ erDiagram
     refresh_tokens {
         UUID id PK
         UUID user_id FK
-        TEXT token_hash
-        TIMESTAMP expires_at
-        BOOLEAN revoked
+        VARCHAR token_hash
         TIMESTAMP created_at
+        TIMESTAMP expires_at
     }
 
     generations {
-        INT id PK
-        VARCHAR name
+        UUID id PK
+        INT poke_api_id UK
+        VARCHAR name UK
         VARCHAR region_name
-        TIMESTAMP created_at
     }
 
     pokemon_species {
-        INT id PK
+        UUID id PK
+        INT poke_api_id UK
         VARCHAR name UK
-        INT generation_id FK
-        INT capture_rate
-        INT base_happiness
-        INT hatch_counter
-        INT gender_rate
-        BOOLEAN is_baby
+        VARCHAR slug UK
         BOOLEAN is_legendary
         BOOLEAN is_mythical
+        BOOLEAN is_baby
+        INT capture_rate
+        INT gender_rate
+        INT hatch_counter
+        INT base_happiness
+        UUID generation_id FK
+        TEXT flavor_text
     }
 
     pokemon {
-        INT id PK
-        VARCHAR name UK
-        INT national_dex_number UK
-        INT species_id FK
-        INT generation_id FK
-
+        UUID id PK
+        INT poke_api_id UK
+        UUID species_id FK
+        VARCHAR form_name
+        VARCHAR slug UK
         INT height
         INT weight
         INT base_experience
-
-        BOOLEAN is_legendary
-        BOOLEAN is_mythical
-
-        TEXT sprite_front_default
-        TEXT sprite_official_artwork
-
-        INT hp
-        INT attack
-        INT defense
-        INT special_attack
-        INT special_defense
-        INT speed
-
-        INT total_stats
-
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        BOOLEAN is_default
+        BOOLEAN is_mega
+        BOOLEAN is_gmax
+        TEXT sprite_url
+        TEXT shiny_sprite_url
+        TEXT official_art_url
     }
 
     types {
-        INT id PK
+        UUID id PK
+        INT poke_api_id UK
         VARCHAR name UK
+        VARCHAR color
     }
 
-    pokemon_types {
-        INT pokemon_id FK
-        INT type_id FK
-        INT slot
+    type_relations {
+        UUID attacking_type_id PK,FK
+        UUID defending_type_id PK,FK
+        REAL multiplier
     }
 
     stats {
-        INT id PK
+        UUID id PK
+        INT poke_api_id UK
         VARCHAR name UK
-    }
-
-    pokemon_stats {
-        INT pokemon_id FK
-        INT stat_id FK
-        INT base_stat
-        INT effort
+        VARCHAR short_name
     }
 
     abilities {
-        INT id PK
+        UUID id PK
+        INT poke_api_id UK
         VARCHAR name UK
-        TEXT description
+        TEXT effect
+        TEXT flavor_text
     }
 
-    pokemon_abilities {
-        INT pokemon_id FK
-        INT ability_id FK
-        BOOLEAN is_hidden
-        INT slot
+    items {
+        UUID id PK
+        INT poke_api_id UK
+        VARCHAR name UK
+        VARCHAR slug UK
+        item_category category
+        TEXT effect
+        TEXT flavor_text
+        INT cost
+        TEXT sprite_url
     }
 
     moves {
-        INT id PK
+        UUID id PK
+        INT poke_api_id UK
         VARCHAR name UK
-
         INT accuracy
         INT power
         INT pp
         INT priority
-
         VARCHAR damage_class
-
-        INT move_type_id FK
-        INT generation_id FK
-
+        UUID move_type_id FK
         TEXT effect
-        TEXT short_effect
+        TEXT flavor_text
+    }
+
+    pokemon_types {
+        UUID pokemon_id PK,FK
+        UUID type_id PK,FK
+        INT slot
+    }
+
+    pokemon_stats {
+        UUID pokemon_id PK,FK
+        UUID stat_id PK,FK
+        INT base_value
+        INT effort
+    }
+
+    pokemon_abilities {
+        UUID pokemon_id PK,FK
+        UUID ability_id PK,FK
+        BOOLEAN is_hidden
+        INT slot
     }
 
     pokemon_moves {
-        INT pokemon_id FK
-        INT move_id FK
-
-        VARCHAR learn_method
-        INT level_learned_at
-        VARCHAR version_group
+        UUID pokemon_id PK,FK
+        UUID move_id PK,FK
+        learn_method learn_method PK
+        INT version_group_id PK
+        SMALLINT level_learned_at
     }
 
     evolution_chains {
-        INT id PK
+        UUID id PK
+        INT poke_api_id UK
     }
 
     evolution_chain_nodes {
-        BIGINT id PK
-
-        INT evolution_chain_id FK
-        INT pokemon_id FK
-
-        BIGINT parent_node_id FK
-
-        INT min_level
-        VARCHAR trigger_name
-        VARCHAR item_name
+        UUID id PK
+        UUID chain_id FK
+        UUID species_id FK
+        UUID parent_node_id FK
+        evolution_trigger trigger
+        SMALLINT min_level
+        UUID item_id FK
+        UUID held_item_id FK
+        SMALLINT min_happiness
+        SMALLINT min_affection
+        SMALLINT min_beauty
         VARCHAR time_of_day
-        INT min_happiness
-
-        BOOLEAN needs_overworld_rain
+        UUID known_move_id FK
+        VARCHAR known_move_type
+        UUID party_species_id FK
+        VARCHAR party_type_required
+        SMALLINT relative_physical_stats
+        VARCHAR gender_required
+        VARCHAR location_required
+        BOOLEAN needs_rain
+        BOOLEAN turn_upside_down
+        BOOLEAN is_night_shade
     }
-
-    favorites {
-        UUID user_id FK
-        INT pokemon_id FK
-        TIMESTAMP created_at
-    }
-
-    teams {
-        UUID id PK
-        UUID user_id FK
-
-        VARCHAR name
-        TEXT description
-
-        BOOLEAN is_public
-
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-
-    team_members {
-        UUID id PK
-
-        UUID team_id FK
-        INT pokemon_id FK
-
-        INT slot
-
-        VARCHAR nickname
-        INT level
-        VARCHAR nature
-
-        INT ability_id FK
-
-        VARCHAR item_name
-
-        INT tera_type_id FK
-    }
-
-    ai_team_analyses {
-        UUID id PK
-
-        UUID team_id FK
-
-        TEXT summary
-        TEXT strengths
-        TEXT weaknesses
-
-        JSONB suggested_pokemon
-        JSONB suggested_moves
-        JSONB threat_analysis
-
-        DECIMAL meta_score
-
-        TIMESTAMP created_at
-    }
-
-    reports {
-        UUID id PK
-
-        UUID reporter_id FK
-        UUID reported_team_id FK
-
-        TEXT reason
-
-        VARCHAR status
-
-        TIMESTAMP created_at
-    }
-
-    %% =========================
-    %% RELATIONSHIPS
-    %% =========================
 
     users ||--o{ refresh_tokens : owns
-
-    users ||--o{ favorites : favorites
-    pokemon ||--o{ favorites : favorited
-
-    generations ||--o{ pokemon : contains
     generations ||--o{ pokemon_species : contains
-    generations ||--o{ moves : introduced
-
-    pokemon_species ||--o{ pokemon : species
+    pokemon_species ||--o{ pokemon : has_forms
 
     pokemon ||--o{ pokemon_types : has
-    types ||--o{ pokemon_types : typed
+    types ||--o{ pokemon_types : classifies
 
     pokemon ||--o{ pokemon_stats : has
-    stats ||--o{ pokemon_stats : defines
+    stats ||--o{ pokemon_stats : measures
 
     pokemon ||--o{ pokemon_abilities : has
-    abilities ||--o{ pokemon_abilities : assigned
+    abilities ||--o{ pokemon_abilities : assigns
 
     pokemon ||--o{ pokemon_moves : learns
     moves ||--o{ pokemon_moves : learned_by
-
     types ||--o{ moves : move_type
 
+    types ||--o{ type_relations : attacks_as
+    types ||--o{ type_relations : defends_as
+
     evolution_chains ||--o{ evolution_chain_nodes : contains
-    pokemon ||--o{ evolution_chain_nodes : evolves
-
-    evolution_chain_nodes ||--o{ evolution_chain_nodes : parent_child
-
-    users ||--o{ teams : owns
-
-    teams ||--o{ team_members : contains
-    pokemon ||--o{ team_members : member
-
-    abilities ||--o{ team_members : selected_ability
-    types ||--o{ team_members : tera_type
-
-    teams ||--o{ ai_team_analyses : analyzed
-
-    users ||--o{ reports : creates
-    teams ||--o{ reports : reported
+    pokemon_species ||--o{ evolution_chain_nodes : represents
+    evolution_chain_nodes ||--o{ evolution_chain_nodes : parent_of
+    items ||--o{ evolution_chain_nodes : use_item
+    items ||--o{ evolution_chain_nodes : held_item
+    moves ||--o{ evolution_chain_nodes : known_move
+    pokemon_species ||--o{ evolution_chain_nodes : party_species

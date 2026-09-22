@@ -1,103 +1,127 @@
-Database Design
+POKEPEDIA DATABASE DESIGN
 
-I. Overall doamains:
+Source of truth: `backend/src/database/schema`. This document summarizes the checked-in Drizzle model, not merely the original product plan.
 
-User
-Pokémon Data
-Favorites
-Team Builder
-AI Analyzer
-Admin
-Infrastructure/Audit
-Social/Sharing (future)
+The editable diagram source is `docs/Database/Database.mmd`. `Database.png` is a legacy render of the old speculative model and should not be used until it is regenerated from the updated Mermaid source.
 
-1. User
-Tables:
+1. Identity domain
 
 users
------
+- UUID primary key.
+- Unique username and email.
+- Bcrypt password hash, optional avatar URL, USER/ADMIN role.
+- Created/updated timestamps.
 
 refresh_tokens
---------------
+- UUID primary key and cascading user foreign key.
+- Stores a bcrypt hash, never the raw refresh token.
+- Created and expiry timestamps.
+- Multiple sessions per user are currently allowed.
 
-2. Pokémon Data
+Registration/reset OTPs and verification grants are stored in Redis, not PostgreSQL.
 
-pokemon
--------
-
-pokemon_types
--------------
-
-pokemon_abilities
---------------
-
-pokemon_moves
--------------
-
-pokemon_stats
--------------
-
-evolution_chain
------------------
-
-evolution_chain_node
-----------------------------
+2. Pokémon reference domain
 
 generations
------------
+- PokéAPI ID, unique name, region name.
 
 types
------
+- PokéAPI ID, unique name, UI color.
 
-abilities
----------
-
-moves
------
+type_relations
+- Composite key: attacking type + defending type.
+- Stores only non-neutral multipliers (0, 0.5, 2). Neutral 1x cells are reconstructed in TypeService.
 
 stats
------
+- PokéAPI ID, unique name, short UI label.
 
-type_effectiveness
-------------------
+abilities
+- PokéAPI ID, unique name, effect, flavor text.
 
-3. Favorites
+items
+- PokéAPI ID, unique name/slug, normalized category, effect, flavor text, cost, sprite.
 
-favorites
----------
+moves
+- PokéAPI ID, unique name, accuracy, power, PP, priority, damage class, type, effect, and flavor text.
 
-4. Team Builder
+3. Species and form domain
 
-teams
------
+pokemon_species
+- One row per species.
+- Generation, legendary/mythical/baby flags, capture/breeding metadata, flavor text.
+- Species slug and PokéAPI ID are unique.
 
-team_members
-------------
+pokemon
+- One row per form.
+- Belongs to a species.
+- Holds form-specific slug/name, height, weight, experience, default/mega/gmax flags, and artwork URLs.
 
-5. AI Analyzer
+Separating species from forms is intentional. Do not collapse these tables when building detail or search features.
 
-ai_team_analyzers
-----------------
+4. Pokémon joins
 
-6. Admin
+pokemon_types
+- Composite key: Pokémon form + type.
+- Slot preserves primary/secondary order.
 
-reports
--------
+pokemon_stats
+- Composite key: Pokémon form + stat.
+- Base value and effort yield.
 
-7. Infrastructure/Audit (future)
+pokemon_abilities
+- Composite key: Pokémon form + ability.
+- Hidden flag and slot.
 
-8. Social/Sharing (future)
+pokemon_moves
+- Composite key: Pokémon form + move + learn method + version group.
+- Learn method enum and optional level learned.
 
-II. RabbitMQ Design
+5. Evolution domain
 
-pokemon.sync
+evolution_chains
+- One container per PokéAPI evolution-chain ID.
 
-team.analysis
+evolution_chain_nodes
+- Adjacency-list tree using `parent_node_id`.
+- One species per node with trigger and optional level/item/friendship/time/move/party/stat/gender/location conditions.
+- Item, held item, known move, and party species are optional references.
 
-III. Redis Design
+Known issue: there is no natural unique constraint for a node such as `(chain_id, species_id, parent_node_id)`. The sync code uses `onConflictDoNothing()`, but the generated UUID primary key never conflicts, so repeated syncs can duplicate nodes. Fix the uniqueness/idempotency design before relying on repeated production syncs.
 
-cache detail
-EX: pokemon:detail:pikachu
+6. Redis design
 
-cache search
-EX: pokemon:search:type:fire:page:1
+- `otp:<type>:<email>`: five-minute raw OTP.
+- `email_verified:<email>`: 15-minute registration permission.
+- `reset_verified:<email>`: ten-minute password-reset permission.
+- `type-chart`: complete effectiveness matrix, 24-hour TTL.
+- `evolution-chain:species:<uuid>`: detail-ready tree, 24-hour TTL.
+
+Only evolution cache keys are currently cleared after full synchronization. Type-chart invalidation still needs implementation.
+
+7. Migration status — blocking for clean setup
+
+The checked-in SQL migrations are not aligned with the source schema:
+
+- `0000_material_stature.sql` creates only early auth tables and an obsolete PostgreSQL OTP table.
+- `0001_panoramic_songbird.sql` removes that OTP table/type.
+- No checked-in migration creates the current Pokémon tables or enums.
+- The early migration makes `users.password_hash` nullable, while the source schema marks it non-null.
+
+Before further schema features:
+
+1. verify that `drizzle.config.ts` includes the nested `schema/pokemon` files;
+2. generate and manually review a migration representing every current table, enum, index, and foreign key;
+3. add the intended self-reference on `evolution_chain_nodes.parent_node_id`;
+4. solve evolution-node uniqueness/idempotency;
+5. migrate a new empty PostgreSQL database and run a limited sync as proof;
+6. only then add favorites, teams, reports, or social tables.
+
+8. Planned domains not yet modeled
+
+- favorites;
+- teams and ordered team members (maximum six enforced by API/database strategy);
+- reports/admin audit data;
+- AI analysis history;
+- sharing, cloning, ratings, and visibility.
+
+Design these only when the corresponding vertical slice is scheduled. Do not add speculative tables without ownership, authorization, and lifecycle rules.

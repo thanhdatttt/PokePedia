@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PokePedia frontend
 
-## Getting Started
+Next.js 16 App Router frontend for PokePedia.
 
-First, run the development server:
+Read [../docs/PROJECT_STATE.md](../docs/PROJECT_STATE.md) before extending the UI. It identifies which backend capabilities exist and which navbar/product areas are placeholders.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Environment
+
+Create `frontend/.env.local` locally. It is ignored by Git.
+
+```dotenv
+NODE_ENV=development
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`NEXT_PUBLIC_API_URL` is required and must include the backend `/api` prefix.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Install and run
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Open `http://localhost:3000`.
 
-To learn more about Next.js, take a look at the following resources:
+Other commands:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm exec -- tsc --noEmit
+npm run build
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Implemented routes
 
-## Deploy on Vercel
+- `/` — placeholder homepage.
+- `/login` — email/password login.
+- `/register` — email, OTP, and account-details flow.
+- `/forgot-password` — email, OTP, and reset flow.
+- `/types/chart` — type matrix and one/two-type defensive calculator.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The navbar also links to routes that do not exist yet: `/pokedex`, `/types`, `/builder`, `/profile`, `/teams`, `/favorites`, and `/settings`. The mobile sign-up link incorrectly targets `/signup` instead of `/register`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Client architecture
+
+- `lib/api.ts` defines public and bearer-authenticated Axios clients and unwraps the backend response envelope.
+- `services/` contains endpoint adapters.
+- `stores/` contains Zustand state/actions.
+- `lib/validations/` contains Zod auth-form validation.
+- `components/ui/` contains shadcn/Radix primitives.
+
+TanStack Query and next-themes are installed but are not currently integrated.
+
+## Authentication warning
+
+Login stores the access token in memory. The frontend's bootstrap, refresh retry, and logout logic assume a refresh cookie, but the backend returns a refresh token in JSON and requires it in refresh/logout request bodies. The frontend also calls an absent `POST /users/me` endpoint, and the navbar is not connected to Zustand auth state.
+
+Resolve this contract as one end-to-end change before building more authenticated features. Do not work around it by persisting raw refresh tokens in local storage without an explicit security decision.
